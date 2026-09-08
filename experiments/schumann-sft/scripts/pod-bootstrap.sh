@@ -44,6 +44,13 @@ case "$MODE" in
     done
     say "Done — pull $OUT to the studio rig, then: node runpod.mjs down --all"
     ;;
-  *) echo "usage: bash pod-bootstrap.sh [dry|train]"; exit 2 ;;
+  ctx)
+    say "Adapter + KB context (the fourth condition); adapter synced to $WORK/adapter"
+    test -d "$WORK/adapter" || { echo "FATAL: no adapter at $WORK/adapter"; exit 1; }
+    mkdir -p "$OUT"
+    python3 "$WORK/scripts/predict_schumann.py" --config "$WORK/lora-config.json" --data "$WORK/data/sft-test.jsonl" --adapter "$WORK/adapter" --context "$WORK/data/kb-context.md" --out "$OUT/preds-lora-context.jsonl"
+    say "Done — pull $OUT, then tear down by id"
+    ;;
+  *) echo "usage: bash pod-bootstrap.sh [dry|train|ctx]"; exit 2 ;;
 esac
 say "The pod is STILL BILLING"
