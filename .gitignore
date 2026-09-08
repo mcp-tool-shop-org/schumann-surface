@@ -8,3 +8,8 @@ out/
 *.npz
 *.bin
 data/hf_staging/
+site/.astro/
+site/.astro/
+site/dist/
+site/node_modules/
+.polyglot-cache.json

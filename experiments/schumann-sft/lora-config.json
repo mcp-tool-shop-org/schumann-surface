@@ -1,0 +1,24 @@
+{
+  "base_model": "Qwen/Qwen2.5-3B-Instruct",
+  "method": "lora",
+  "precision": "bf16",
+  "lora": {
+    "r": 16,
+    "alpha": 32,
+    "dropout": 0.05,
+    "target_modules": ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
+  },
+  "lr": 0.0002,
+  "schedule": "cosine",
+  "warmup_steps": 10,
+  "per_device_train_batch_size": 4,
+  "gradient_accumulation_steps": 4,
+  "weight_decay": 0.0,
+  "max_grad_norm": 1.0,
+  "max_seq_len": 2048,
+  "epochs": 4,
+  "gradient_checkpointing": true,
+  "seed": 13,
+  "prompt_loss_weight": 0.1,
+  "notes": "Knowledge-injection SFT: the model learns this dataset and its knowledge base so it can answer without the documents in context. The experiment contract from the acoustic run applies: report the base model on the same held-out split, fairly prompted, AND a base-with-KB-in-context condition, because the honest question is whether the adapter internalised what retrieval would have supplied. Test questions are held-out paraphrases plus held-out facts never rendered as a training pair. Short examples (a few hundred tokens), so batch 4 x accum 4 = effective 16."
+}

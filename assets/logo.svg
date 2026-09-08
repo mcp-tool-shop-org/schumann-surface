@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <rect width="1024" height="1024" rx="200" fill="#151a2a"/>
+  <!-- horizon arc: the cavity -->
+  <path d="M132 792 A 460 460 0 0 1 892 792" fill="none" stroke="#7dd3fc" stroke-width="22" stroke-linecap="round" opacity="0.85"/>
+  <!-- three ridges: modes 1, 2, 3 on a resonance surface, viridis -->
+  <path d="M180 630 C 300 630 330 400 420 400 S 540 630 640 630 S 760 400 860 400" fill="none" stroke="#fde725" stroke-width="54" stroke-linecap="round"/>
+  <path d="M180 515 C 300 515 330 330 420 330 S 540 515 640 515 S 760 330 860 330" fill="none" stroke="#21918c" stroke-width="54" stroke-linecap="round"/>
+  <path d="M180 400 C 300 400 330 260 420 260 S 540 400 640 400 S 760 260 860 260" fill="none" stroke="#3b528b" stroke-width="54" stroke-linecap="round"/>
+</svg>

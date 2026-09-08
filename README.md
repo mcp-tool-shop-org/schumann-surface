@@ -1,12 +1,26 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/mcp-tool-shop-org/brand/main/logos/schumann-surface/readme.png" alt="Schumann Surface" width="400">
+</p>
+
+<p align="center">
+  <a href="https://github.com/mcp-tool-shop-org/schumann-surface/actions/workflows/ci.yml"><img src="https://github.com/mcp-tool-shop-org/schumann-surface/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT"></a>
+  <a href="https://mcp-tool-shop-org.github.io/schumann-surface/"><img src="https://img.shields.io/badge/landing-page-0ea5e9" alt="Landing page"></a>
+  <a href="https://huggingface.co/datasets/mcp-tool-shop/schumann-sierra-nevada"><img src="https://img.shields.io/badge/dataset-Hugging%20Face-ffcc4d" alt="Dataset"></a>
+</p>
+
+<p align="center"><a href="README.md">English</a> · <a href="README.ja.md">日本語</a> · <a href="README.zh.md">中文</a> · <a href="README.es.md">Español</a> · <a href="README.fr.md">Français</a> · <a href="README.hi.md">हिन्दी</a> · <a href="README.it.md">Italiano</a> · <a href="README.pt-BR.md">Português (BR)</a></p>
+
 # schumann-surface
 
 Schumann resonance as a 3D time–frequency surface with event lanes and an honest, lagged
 cross-correlation panel. One month of a real ELF station rendered so a person can see the
 daily lightning rhythm, the mode ribbons, and what a geomagnetic storm does and does not do.
 
-Status: step 1 proven on October 2013 from the Sierra Nevada ELF station (University of
-Granada). The processing chain reproduces the station's own published spectra and mode fits
-slot by slot. The viewer is a single self-contained HTML file.
+Status: v1.0.0. October and June 2013 from the Sierra Nevada ELF station (University of Granada)
+reproduced against the station's own published spectra and mode fits slot by slot; the remaining
+ten months of the raw archive are flowing through the same pipeline. The viewer is a single
+self-contained HTML file with four modes; live at the [landing page](https://mcp-tool-shop-org.github.io/schumann-surface/viewer/).
 
 ## What it shows
 
@@ -98,6 +112,20 @@ Scored 0–3 against the studio's six workflow standards.
 | UNCERTAINTY_GATED_HUMANS | 1 | The correlation panel shows the null band, which is the uncertainty gate for the viewer. No human checkpoint in the pipeline itself. Remediation: make the verifier emit pass/fail against a stated tolerance (owner: next session). |
 | EXTERNAL_VERIFIER | 3 | The verifier is the station's own independently produced output (different code, different authors, lmfit vs SciPy). Numbers in the table above. |
 
+## Trust and data
+
+The pipeline runs locally from a checkout. It reads and writes only under `data/` and `viewer/`.
+Network access happens only when you ask a script to fetch: Zenodo (raw archive), Digibug (the
+station's verifier files), GFZ (Kp), USGS (earthquakes). Uploading the dataset uses your own Hugging
+Face login outside these scripts. No credentials are read or stored, no telemetry is sent, and the
+viewer is a static page that loads Three.js and two fonts from public CDNs and nothing else.
+Requirements: Python 3.11 or newer with NumPy, SciPy and PyArrow, on any OS; Node is only needed for
+the optional landing page.
+
 ## Licence
 
 MIT for the code. Derived data products carry the attribution required by their sources.
+
+---
+
+<p align="center">Built by <a href="https://mcp-tool-shop.github.io/">MCP Tool Shop</a></p>
