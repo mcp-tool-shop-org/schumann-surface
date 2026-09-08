@@ -117,6 +117,26 @@ Scored 0–3 against the studio's six workflow standards.
 | UNCERTAINTY_GATED_HUMANS | 1 | The correlation panel shows the null band, which is the uncertainty gate for the viewer. No human checkpoint in the pipeline itself. Remediation: make the verifier emit pass/fail against a stated tolerance (owner: next session). |
 | EXTERNAL_VERIFIER | 3 | The verifier is the station's own independently produced output (different code, different authors, lmfit vs SciPy). Numbers in the table above. |
 
+## The analyst
+
+A Qwen2.5-3B LoRA that knows this dataset, with a deterministic router in front
+(`experiments/schumann-sft/analyst.py`). Questions naming a month go to the adapter alone, which
+memorised the per-month statistics; everything else goes to the adapter with the knowledge base in
+context. Routed held-out accuracy is 0.625 against 0.573 for the best single condition, 0.354 for the
+base model with the knowledge base in context, and 0.031 for the base model alone. The model card on
+[Hugging Face](https://huggingface.co/mcp-tool-shop/schumann-analyst-qwen2.5-3b-lora) carries every
+condition. Run it on a CUDA machine:
+
+```bash
+cd experiments/schumann-sft && uv venv --python 3.12 .venv
+uv pip install --python .venv/Scripts/python.exe torch --index-url https://download.pytorch.org/whl/cu128
+uv pip install --python .venv/Scripts/python.exe "transformers>=4.44" "peft>=0.13" "accelerate>=0.34"
+.venv/Scripts/python.exe analyst.py "Why does the data stop at 25 Hz?"
+.venv/Scripts/python.exe analyst.py --serve 8770      # POST /ask {"question": "..."}
+```
+
+The adapter is a convenience; the Parquet tables are the record.
+
 ## Trust and threat model
 
 The pipeline runs locally from a checkout. It reads and writes only under `data/` and `viewer/`.

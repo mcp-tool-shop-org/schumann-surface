@@ -45,6 +45,23 @@ column bounds what it can do beyond memorising the corpus.
 - 4 epochs, lr 2e-4 cosine, effective batch 16, prompt-loss weight 0.1, seed 13.
 - __GPU__, __TRAIN_MIN__ minutes of training, peak __PEAK_GB__ GB. Receipt: `training-receipt.json`.
 
+
+## The router (use this, not the bare adapter)
+
+`router.py` in the repository is a regular expression, not a model: a question that names a specific
+month of the archive goes to the adapter alone; everything else goes to the adapter with the
+knowledge base in context. Scored from the saved held-out answers:
+
+| System | all | paraphrase | unseen | data |
+|---|---|---|---|---|
+| best single condition (adapter alone) | 0.573 | 0.425 | 0.200 | 0.944 |
+| **routed: month → adapter, else → adapter + KB context** | **0.625** | 0.525 | 0.250 | 0.944 |
+| routed: month → adapter, else → base + KB context | 0.594 | 0.375 | 0.400 | 0.944 |
+
+`analyst.py` wraps the model with the router in front and returns every answer with its route and
+the model that produced it. `--else base` picks the second row's variant, which is worse overall but
+better on facts the corpus never contained.
+
 ## Use
 
 ```python
