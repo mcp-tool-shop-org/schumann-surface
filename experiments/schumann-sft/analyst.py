@@ -17,6 +17,10 @@ regime they are in. The adapter is a convenience; the Parquet tables are the rec
 from __future__ import annotations
 import argparse, json, os, sys, time
 from pathlib import Path
+try:
+    sys.stdout.reconfigure(encoding="utf-8")  # Windows consoles default to cp1252; answers carry Ω and √
+except Exception:
+    pass
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
