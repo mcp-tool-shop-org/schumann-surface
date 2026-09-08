@@ -31,9 +31,14 @@ small{color:var(--mut)}
 #tSlide{width:100%;margin:2px 0;accent-color:#7dd3fc}
 #kpStrip{width:100%;height:22px;display:block;border-radius:3px;background:#0f131a;cursor:pointer}
 #scrubTop{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+#atlas{position:absolute;inset:0 340px 86px 0;display:none;z-index:1;background:#0b0e14;cursor:crosshair}
+#atlas.show{display:block}
+#projRow{display:flex;gap:4px;margin:6px 0}
+#projRow button.on{background:#1e3a5f;border-color:#7dd3fc;color:#7dd3fc}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style></head><body>
 <div id="gl"></div>
+<canvas id="atlas"></canvas>
 <div id="tip"><b>hover the surface</b><br><span class="sub">click pins the spectrum · arrows step · drag: rotate · wheel: zoom</span></div>
 <div id="scrub">
  <div id="scrubTop"><span class="stat" id="tLabel"></span><span class="sub" id="stormTag"></span></div>
@@ -69,11 +74,16 @@ small{color:var(--mut)}
   <label><input type="checkbox" id="ridgeOn" checked> Mode ridge sheets (1–3)</label>
  </div>
  <div id="optCavity" class="vopt">
-  <h2>Shell</h2>
+  <h2>Projection</h2>
+  <div id="projRow">
+   <button type="button" id="projAtlas" class="on">Atlas</button>
+   <button type="button" id="projGlobe">Globe</button>
+  </div>
+  <h2>Modes</h2>
   <label><input type="checkbox" id="cavM1" checked> Mode 1 · P<sub>1</sub><sup>1</sup> (red)</label>
   <label><input type="checkbox" id="cavM2" checked> Mode 2 · P<sub>2</sub><sup>1</sup> (green)</label>
   <label><input type="checkbox" id="cavM3" checked> Mode 3 · P<sub>3</sub><sup>1</sup> (blue)</label>
-  <p class="sub">One-station inversion: the pattern is the associated-Legendre magnetic standing wave of each measured mode, centred on the chimneys and scaled by this station's amplitude. Yellow fans are the measured magnetic polarisation (two opposite lobes: 180° ambiguity); their width is 1 − coherence. Not a global map. Modes 4 and up are not in the data.</p>
+  <p class="sub">One-station inversion. Atlas: station at the centre, radius = angular distance, gold slices = measured polarisation (180° ambiguous). Globe is the same data on a sphere. Modes 4 and up are not in the data. Chimney discs are a model schedule, not a lightning map.</p>
  </div>
  <div id="optTraj" class="vopt">
   <h2>Time</h2>
@@ -82,7 +92,7 @@ small{color:var(--mut)}
  </div>
  <div id="lookCavity" class="vopt">
   <h2>What to look for</h2>
-  <p class="sub">Two opposite yellow fans from Sierra Nevada — the axial polarisation is 180° ambiguous. October fans should look fat (median mode-1 coh ≈ 0.18), not a needle; a rare high-coh column narrows them. Scrub to ~14 UTC: Africa (green) should sit in a fan. ~20 UTC: the Americas (blue). October chimney dots sit south of the equator (SON); June sits north (JJA). Pin tooltip prints az / coh. The globe still says one-station inversion.</p>
+  <p class="sub">Rest state is the atlas: Sierra Nevada at the centre, rim = antipode. Gold pie slices are the measured bearing (two opposite lobes). Concentric red/green/blue rings are modes 1–3. Labelled discs are the three chimneys at their true range and bearing; disc size is the UTC model. Scrub to ~14 UTC: Africa should sit in a slice. ~20 UTC: the Americas. Globe is a toggle, not the default.</p>
  </div>
  <div id="lookTraj" class="vopt">
   <h2>What to look for</h2>
@@ -125,7 +135,7 @@ const dB=(sh,i,j)=>{const v=sh.u8[i*nf+j];return v?sh.lo+(v-1)/254*(sh.hi-sh.lo)
 const BLURB={
  surface:'Time runs left to right across one month. Frequency runs front to back, 6–25 Hz (modes 1–3). Height and colour are magnetic amplitude in dB re 1 pT/√Hz. The ridges near 7.8, 14 and 20 Hz are the Earth–ionosphere cavity ringing. Lightning drives them, so they breathe once a day as Southeast Asia, then Africa, then the Americas rotate under the sun.',
  stack:'The month is folded into a volume: hour of day (left–right), day of month (up), frequency (front–back). Translucent slabs are the spectrogram. The three mode ridges are sheets through the block; a storm day is where those sheets bulge. Threshold hides quiet voxels. This station resolves 6–25 Hz only.',
- cavity:'Earth with an exaggerated ionosphere shell. At the scrubbed time the measured mode-1…3 magnetic amplitudes paint associated-Legendre standing waves (P<sub>n</sub><sup>1</sup>) on the shell, centred on the three tropical chimneys. Yellow fans are the measured polarisation of mode 1, drawn twice because an axial angle is 180° ambiguous; fan width follows coherence. Chimney size follows the UTC afternoon schedule, weighted by those fans. Seasonal chimney positions from <span class="stat">chimneys_month</span>. This is a one-station inversion, not a global map.',
+ cavity:'Station-centred azimuthal atlas: Sierra Nevada at the centre, radius is angular distance (rim = 180° / the antipode), angle is bearing (north up). Concentric red / green / blue rings are |P<sub>n</sub><sup>1</sup>(cos θ)| × the pinned mode-1…3 amplitudes. The two gold slices are the measured polarisation of mode 1 (180° ambiguous); their width is 1 − coherence. Labelled discs are the three chimneys at their true range and bearing from this station; size follows the UTC model, not a lightning map. Globe is the same data on a sphere. One-station inversion.',
  traj:'Mode-1 centre frequency × mode-1 peak amplitude × time. Colour is Kp. The grey helix is the month-mean diurnal loop (amplitude from the measured <span class="stat">diurnal</span> table). The marked interval is a departure from that loop, not a new cavity mode.'
 };
 document.getElementById('blurb').innerHTML=BLURB.surface;
@@ -316,7 +326,79 @@ function paintShell(i){
  termLine.geometry.dispose();termLine.geometry=new THREE.BufferGeometry().setFromPoints(tpts);
  for(let k=0;k<chimMeshes.length;k++){const sc=1.4+4.2*w[k];chimMeshes[k].scale.setScalar(sc);}
 }
-// ---------- trajectory ----------
+// ---------- cavity atlas (station-centred azimuthal equidistant) ----------
+let cavAtlas=true;
+const atlas=q('atlas');
+function toAtlas(lat,lon,cx,cy,R){const th=angDist(D.lat,D.lon,lat,lon),az=gcAz(D.lat,D.lon,lat,lon),rho=th/Math.PI*R;return {x:cx+rho*Math.sin(az),y:cy-rho*Math.cos(az),th,az};}
+function drawAtlas(i){
+ const c=atlas,g=c.getContext('2d');
+ const cssW=Math.max(1,W()),cssH=Math.max(1,H()),dpr=Math.min(devicePixelRatio||1,2);
+ c.width=Math.floor(cssW*dpr);c.height=Math.floor(cssH*dpr);c.style.width=cssW+'px';c.style.height=cssH+'px';
+ g.setTransform(dpr,0,0,dpr,0,0);
+ g.fillStyle='#0b0e14';g.fillRect(0,0,cssW,cssH);
+ const cx=cssW/2,cy=cssH/2,R=Math.min(cssW,cssH)*0.42;
+ const t=D.t0+i*D.dt,hour=new Date(t*1000).getUTCHours()+new Date(t*1000).getUTCMinutes()/60;
+ const md=D.modes.NS,a1=Math.max(0,md.a[i][0]),a2=Math.max(0,md.a[i][1]),a3=Math.max(0,md.a[i][2]);
+ const on=[q('cavM1').checked,q('cavM2').checked,q('cavM3').checked];
+ const mx=Math.max(on[0]?a1:0,on[1]?a2*1.5:0,on[2]?a3*1.8:0,0.08);
+ const side=Math.ceil(2*R+2),img=g.createImageData(side,side);
+ for(let py=0;py<side;py++)for(let px=0;px<side;px++){
+  const dx=px+0.5-R,dy=py+0.5-R,rho=Math.hypot(dx,dy);if(rho>R)continue;
+  const th=rho/R*Math.PI,s=Math.sin(th),ct=Math.cos(th);
+  let rC=0,gC=0,bC=0;
+  if(on[0])rC=s*a1;
+  if(on[1])gC=3*Math.abs(ct)*s*a2;
+  if(on[2])bC=1.5*Math.abs(5*ct*ct-1)*s*a3;
+  const k=255/mx,o=(py*side+px)*4;
+  img.data[o]=Math.min(255,rC*k);img.data[o+1]=Math.min(255,gC*k);img.data[o+2]=Math.min(255,bC*k);img.data[o+3]=235;
+ }
+ const off=drawAtlas.off||(drawAtlas.off=document.createElement('canvas'));
+ off.width=side;off.height=side;off.getContext('2d').putImageData(img,0,0);
+ g.drawImage(off,cx-R,cy-R,side,side);
+ g.beginPath();g.arc(cx,cy,R,0,Math.PI*2);g.strokeStyle='#3d4d63';g.lineWidth=1;g.stroke();
+ g.fillStyle='#8b93a5';g.font='11px "IBM Plex Sans",system-ui';g.textAlign='left';g.textBaseline='middle';
+ for(const deg of [45,90,135]){const r=R*deg/180;g.beginPath();g.arc(cx,cy,r,0,Math.PI*2);g.strokeStyle='rgba(139,147,165,.35)';g.stroke();g.fillText(deg+'°',cx+r+4,cy);}
+ g.fillText('180° antipode',cx+R+6,cy-12);
+ const kp=kpAt(t),rim=kp>=5?'#ef4444':kp>=4?'#f59e0b':'#3b82f6';
+ g.beginPath();g.arc(cx,cy,R+5,0,Math.PI*2);g.strokeStyle=rim;g.lineWidth=8;g.stroke();
+ g.fillStyle='#8b93a5';g.font='11px "IBM Plex Mono",monospace';g.textAlign='left';g.fillText('Kp '+kp.toFixed(1),cx+R*0.55,cy+R+20);
+ const p1=polAt(i,0);
+ if(p1){
+  const az=p1.az+Math.PI/2,half=fanHalf(p1.coh),op=0.38+0.22*Math.max(0,Math.min(1,p1.coh));
+  const toC=b=>b-Math.PI/2;
+  g.fillStyle='rgba(250,204,21,'+op+')';g.strokeStyle='#fde68a';g.lineWidth=2;
+  for(const base of [az,az+Math.PI]){g.beginPath();g.moveTo(cx,cy);g.arc(cx,cy,R,toC(base-half),toC(base+half),false);g.closePath();g.fill();g.stroke();}
+ }
+ const sun=subsolar(t);g.beginPath();let tp=false;
+ for(let k=0;k<=96;k++){const d=destPoint(sun.lat,sun.lon,k/96*Math.PI*2,Math.PI/2);const p=toAtlas(d.lat,d.lon,cx,cy,R);if(p.th>Math.PI*0.98){tp=false;continue;}tp?g.lineTo(p.x,p.y):g.moveTo(p.x,p.y);tp=true;}
+ g.strokeStyle='#fde68a';g.lineWidth=1.5;g.stroke();
+ const cols=['#fbbf24','#34d399','#60a5fa'];
+ const shortN=c=>c.name.indexOf('Africa')>=0?'Africa':c.name.indexOf('America')>=0?'Americas':'SE Asia';
+ CHIMNEYS.forEach((ch,k)=>{
+  const p=toAtlas(ch.lat,ch.lon,cx,cy,R),rad=7+16*chimW(hour,ch);
+  g.beginPath();g.arc(p.x,p.y,rad,0,Math.PI*2);g.fillStyle=cols[k];g.fill();g.strokeStyle='#0b0e14';g.lineWidth=1.5;g.stroke();
+  g.font='12px "IBM Plex Sans",system-ui';g.fillStyle='#e6e9ef';g.textAlign='left';g.textBaseline='middle';
+  g.fillText(shortN(ch),p.x+rad+5,p.y-1);
+  g.font='10px "IBM Plex Sans",system-ui';g.fillStyle='#8b93a5';g.fillText((ch.peak_utc)+' UTC · '+(p.th*180/Math.PI).toFixed(0)+'°',p.x+rad+5,p.y+12);
+ });
+ g.beginPath();g.arc(cx,cy,5,0,Math.PI*2);g.fillStyle='#fef08a';g.fill();g.strokeStyle='#0b0e14';g.stroke();
+ g.fillStyle='#e6e9ef';g.font='12px "IBM Plex Sans",system-ui';g.textAlign='center';g.textBaseline='bottom';g.fillText('Sierra Nevada',cx,cy-10);
+ g.font='11px "IBM Plex Sans",system-ui';g.fillStyle='#8b93a5';g.textAlign='center';
+ g.fillText('N',cx,cy-R-14);g.fillText('S',cx,cy+R+36);g.fillText('E',cx+R+18,cy);g.fillText('W',cx-R-16,cy);
+ g.fillText('one-station inversion · gold slices are the measurement',cx,cssH-16);
+ g.textAlign='left';g.fillStyle='#8b93a5';g.font='11px "IBM Plex Sans",system-ui';
+ g.fillText('mode 1',24,24);g.fillStyle='#f87171';g.fillRect(72,16,10,10);
+ g.fillStyle='#8b93a5';g.fillText('2',90,24);g.fillStyle='#34d399';g.fillRect(102,16,10,10);
+ g.fillStyle='#8b93a5';g.fillText('3',120,24);g.fillStyle='#60a5fa';g.fillRect(132,16,10,10);
+}
+function setCavityProj(useAtlas){
+ cavAtlas=!!useAtlas;
+ q('projAtlas').classList.toggle('on',cavAtlas);q('projGlobe').classList.toggle('on',!cavAtlas);
+ const show=view==='cavity'&&cavAtlas;
+ atlas.classList.toggle('show',show);
+ renderer.domElement.style.visibility=show?'hidden':'visible';
+ if(view==='cavity'){if(cavAtlas)drawAtlas(pin);else paintShell(pin);}
+}
 const mdTraj=D.modes.NS;
 const trajAs=[],trajFs=[];if(mdTraj){for(let i=0;i<nt;i++){if(mdTraj.a[i][0]>0)trajAs.push(mdTraj.a[i][0]);if(mdTraj.f[i][0]>0)trajFs.push(mdTraj.f[i][0]);}}
 const aLo=Math.min(...trajAs,0.2),aHi=Math.max(...trajAs,0.6),fLo=Math.min(...trajFs,7),fHi=Math.max(...trajFs,8.5);
@@ -390,7 +472,7 @@ el.addEventListener('mousemove',e=>{
  else hover(e);
 });
 el.addEventListener('wheel',e=>{e.preventDefault();going.flag=false;if(reduceMotion){dist=Math.max(80,Math.min(8000,dist*(1+e.deltaY*0.001)));place();}else dDs+=e.deltaY*0.001;},{passive:false});
-addEventListener('resize',()=>{renderer.setSize(W(),H());cam.aspect=W()/H();cam.updateProjectionMatrix();drawKpStrip();drawSlice(sheets[pinSheet],pin,D.modes[pinSheet]?D.modes[pinSheet].f[pin]:null);drawX();});
+addEventListener('resize',()=>{renderer.setSize(W(),H());cam.aspect=W()/H();cam.updateProjectionMatrix();drawKpStrip();drawSlice(sheets[pinSheet],pin,D.modes[pinSheet]?D.modes[pinSheet].f[pin]:null);drawX();if(view==='cavity'&&cavAtlas)drawAtlas(pin);});
 // hover -> tooltip + thin cursor only (spectrum stays pinned)
 const ray=new THREE.Raycaster(),mouse=new THREE.Vector2(),tip=document.getElementById('tip');
 const fmtT=t=>new Date(t*1000).toISOString().slice(0,16).replace('T',' ')+' UTC';
@@ -449,10 +531,11 @@ function pinAt(i){
  stackHi.position.set((h-nH/2)*dX,d*dY,0);
  const a=md.a[pin][0],f=md.f[pin][0];
  if(a>0&&f>0&&window._trajY)trajMark.position.set(tX(pin),window._trajY(a),window._trajZ(f));
- if(gCavity.visible)paintShell(pin);
+ if(view==='cavity'){if(cavAtlas)drawAtlas(pin);else paintShell(pin);}
  drawKpStrip();
  const p1=polAt(pin,0);const polTxt=p1?'<br>pol M1: az '+(p1.az*180/Math.PI).toFixed(0)+'° · coh '+p1.coh.toFixed(2)+' · fan ±'+(fanHalf(p1.coh)*180/Math.PI).toFixed(0)+'°':'';
- tip.innerHTML='<b>'+pinSheet+' pinned</b> <span class="mono">'+fmtT(t)+'</span>'+(nearStorm?'<br>Kp '+kpAt(t).toFixed(1)+' — the month\'s strongest geomagnetic interval':'')+(mf&&mf[0]>0?'<br>modes: <span class="mono">'+mf.map(x=>x.toFixed(2)).join(' / ')+'</span> Hz':'')+polTxt+'<br><span class="sub">drag: rotate · wheel: zoom · right-drag: pan · arrows step 30 min (shift: 1 day)</span>';
+ const hint=view==='cavity'&&cavAtlas?'arrows step 30 min (shift: 1 day) · Atlas / Globe in the panel':'drag: rotate · wheel: zoom · right-drag: pan · arrows step 30 min (shift: 1 day)';
+ tip.innerHTML='<b>'+pinSheet+' pinned</b> <span class="mono">'+fmtT(t)+'</span>'+(nearStorm?'<br>Kp '+kpAt(t).toFixed(1)+' — the month\'s strongest geomagnetic interval':'')+(mf&&mf[0]>0?'<br>modes: <span class="mono">'+mf.map(x=>x.toFixed(2)).join(' / ')+'</span> Hz':'')+polTxt+'<br><span class="sub">'+hint+'</span>';
 }
 q('kpCaption').textContent=D.storm_t?'Kp strip · yellow tick is '+new Date(D.storm_t*1000).toISOString().slice(0,16).replace('T',' ')+' UTC':'Kp strip';
 function drawKpStrip(){const c=q('kpStrip'),g=c.getContext('2d');const w=c.width=Math.max(2,c.clientWidth*2),h=c.height=Math.max(2,c.clientHeight*2);g.clearRect(0,0,w,h);
@@ -466,7 +549,18 @@ q('sheetNS').onchange=e=>{if(meshNS)meshNS.visible=e.target.checked;};q('sheetEW
 q('ribbons').onchange=e=>ribbonGroup.visible=e.target.checked;q('laneKp').onchange=e=>laneKp.visible=e.target.checked;q('laneNight').onchange=e=>laneNight.visible=e.target.checked;q('laneQ').onchange=e=>laneQ.visible=e.target.checked;
 q('iso').oninput=applyIso;q('ridgeOn').onchange=e=>ridgeGroup.visible=e.target.checked;
 q('tComp').oninput=e=>{trajCompress=+e.target.value||6;q('tCompVal').textContent=trajCompress+'×';layoutTraj();if(mdTraj){const a=mdTraj.a[pin][0],f=mdTraj.f[pin][0];if(a>0&&f>0)trajMark.position.set(tX(pin),AY(a),FZ(f));}};
-q('cavM1').onchange=()=>paintShell(pin);q('cavM2').onchange=()=>paintShell(pin);q('cavM3').onchange=()=>paintShell(pin);
+q('cavM1').onchange=q('cavM2').onchange=q('cavM3').onchange=()=>{if(view==='cavity'){if(cavAtlas)drawAtlas(pin);else paintShell(pin);}};
+q('projAtlas').onclick=()=>setCavityProj(true);q('projGlobe').onclick=()=>setCavityProj(false);
+atlas.addEventListener('mousemove',e=>{
+ if(!(view==='cavity'&&cavAtlas))return;
+ const r=atlas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+ const cx=r.width/2,cy=r.height/2,R=Math.min(r.width,r.height)*0.42;
+ const dx=x-cx,az=Math.atan2(dx,cy-y),rho=Math.hypot(dx,cy-y),th=rho/R*Math.PI;
+ let hit=null;
+ CHIMNEYS.forEach(ch=>{const p=toAtlas(ch.lat,ch.lon,cx,cy,R);if(Math.hypot(x-p.x,y-p.y)<22)hit=ch;});
+ const p1=polAt(pin,0);
+ tip.innerHTML=hit?'<b>'+hit.name+'</b><br>range '+(toAtlas(hit.lat,hit.lon,cx,cy,R).th*180/Math.PI).toFixed(0)+'° from station · peak '+hit.peak_utc+' UTC'+(hit.season?' · '+hit.season:''):'<b>atlas</b> θ '+(th*180/Math.PI).toFixed(0)+'° · bearing '+((az*180/Math.PI+360)%360).toFixed(0)+'°'+(p1?'<br>pol M1 az '+(p1.az*180/Math.PI).toFixed(0)+'° · coh '+p1.coh.toFixed(2):'')+'<br><span class="sub">centre = Sierra Nevada · rim = antipode · gold = measured bearing</span>';
+});
 q('tSlide').max=String(nt-1);q('tSlide').oninput=e=>pinAt(+e.target.value);
 document.querySelectorAll('#modes button').forEach(b=>b.onclick=()=>setView(b.dataset.v));
 function setView(v){
@@ -477,8 +571,8 @@ function setView(v){
  q('lookCavity').classList.toggle('show',v==='cavity');q('lookTraj').classList.toggle('show',v==='traj');
  q('blurb').innerHTML=BLURB[v];
  camGoto(PRESET[v]);
- if(v==='cavity')paintShell(pin);
  if(v==='stack')applyIso();
+ setCavityProj(cavAtlas);
  pinAt(pin);
 }
 addEventListener('keydown',e=>{
@@ -523,6 +617,6 @@ q('serA').onchange=drawX;q('serB').onchange=drawX;drawX();
   target.x+=dTx*DAMP;target.y+=dTy*DAMP;target.z+=dTz*DAMP;
   const f=1-DAMP;dTh*=f;dPh*=f;dDs*=f;dTx*=f;dTy*=f;dTz*=f;
  }
- place();renderer.render(scene,cam);
+ place();if(!(view==='cavity'&&cavAtlas))renderer.render(scene,cam);
 })();
 </script></body></html>
