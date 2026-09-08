@@ -11,7 +11,7 @@ tags:
   - space-weather
   - time-series
 size_categories:
-  - 10K<n<100K
+  - 100K<n<1M
 configs:
   - config_name: modes
     data_files: "modes/*.parquet"
@@ -33,9 +33,7 @@ station (University of Granada, 37.04 N, 3.32 W, 2500 m). Every number here desc
 raw archive through a processing chain that reproduces the station's own published products at a
 spectrum ratio of 1.0000. The station's processed files are CC BY-NC-ND and are **not** included.
 
-Months in this release: **2013-06** and **2013-10** (both sensors). The raw archive holds twelve months
-(2013-03 to 2013-12, 2017-01 to 2017-02); further months are added by running the pipeline in
-[mcp-tool-shop-org/schumann-surface](https://github.com/mcp-tool-shop-org/schumann-surface).
+Months in this release: **2013-03, 2013-04, 2013-05, 2013-06, 2013-07, 2013-08, 2013-09, 2013-10, 2013-11, 2013-12, 2017-01, 2017-02** (both sensors), every one of them verified against the station's published products at a spectrum ratio of 1.0000.
 
 ## Read this first: what the instrument can and cannot see
 
