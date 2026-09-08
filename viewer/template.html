@@ -6,13 +6,18 @@
 :root{--bg:#0b0e14;--panel:#141922;--ink:#e6e9ef;--mut:#8b93a5;--acc:#7dd3fc;--line:#26303f;color-scheme:dark}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:13px/1.5 "IBM Plex Sans",system-ui,Segoe UI,Roboto,sans-serif;overflow:hidden}
 .stat,#tip .mono{font-family:"IBM Plex Mono",ui-monospace,Consolas,monospace;font-variant-numeric:tabular-nums}
-#gl{position:absolute;inset:0}
+#gl{position:absolute;inset:0 340px 86px 0}
 #side{position:absolute;top:0;right:0;width:340px;height:100%;overflow:auto;background:var(--panel);border-left:1px solid var(--line);padding:14px 16px;box-sizing:border-box}
+#scrub{position:absolute;left:0;right:340px;bottom:0;height:86px;background:rgba(20,25,34,.96);border-top:1px solid var(--line);padding:6px 14px 8px;box-sizing:border-box}
 h1{font-size:16px;margin:0 0 2px}h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);margin:16px 0 6px}
 .sub{color:var(--mut);font-size:12px}
 label{display:flex;align-items:center;gap:6px;margin:3px 0;cursor:pointer}
 select,button{background:#1c2330;color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:3px 6px;font:inherit;max-width:100%}
-#tip{position:absolute;left:12px;top:12px;background:rgba(20,25,34,.92);border:1px solid var(--line);border-radius:6px;padding:8px 10px;pointer-events:none;min-width:220px}
+#modes{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0 4px}
+#modes button{cursor:pointer}
+#modes button.on{background:#1e3a5f;border-color:#7dd3fc;color:#7dd3fc}
+.vopt{display:none}.vopt.show{display:block}
+#tip{position:absolute;left:12px;top:12px;background:rgba(20,25,34,.92);border:1px solid var(--line);border-radius:6px;padding:8px 10px;pointer-events:none;min-width:220px;z-index:2}
 #tip b{color:var(--acc)}
 canvas.p{width:100%;height:120px;background:#0f131a;border:1px solid var(--line);border-radius:4px;display:block}
 #legend{display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--mut);margin-top:4px}
@@ -20,29 +25,59 @@ canvas.p{width:100%;height:120px;background:#0f131a;border:1px solid var(--line)
 p{margin:6px 0}
 .stat{font-family:ui-monospace,Consolas,monospace;font-size:12px;white-space:pre;color:var(--ink)}
 small{color:var(--mut)}
+#tSlide{width:100%;margin:2px 0;accent-color:#7dd3fc}
+#kpStrip{width:100%;height:22px;display:block;border-radius:3px;background:#0f131a;cursor:pointer}
+#scrubTop{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style></head><body>
 <div id="gl"></div>
-<div id="tip"><b>hover the surface</b><br><span class="sub">drag: rotate · wheel: zoom · right-drag: pan</span></div>
+<div id="tip"><b>hover the surface</b><br><span class="sub">click pins the spectrum · arrows step · drag: rotate · wheel: zoom</span></div>
+<div id="scrub">
+ <div id="scrubTop"><span class="stat" id="tLabel"></span><span class="sub" id="stormTag"></span></div>
+ <input type="range" id="tSlide" min="0" step="1" value="0">
+ <canvas id="kpStrip"></canvas>
+ <div class="sub">Kp strip · yellow tick is 2013-10-02 03:00 UTC</div>
+</div>
 <div id="side">
  <h1>Schumann Surface</h1>
  <div class="sub" id="station"></div>
+ <div id="modes">
+  <button type="button" data-v="surface" class="on">Surface</button>
+  <button type="button" data-v="stack">Day stack</button>
+  <button type="button" data-v="cavity">Cavity</button>
+  <button type="button" data-v="traj">Trajectory</button>
+ </div>
  <h2>What you are looking at</h2>
- <p>Time runs left to right across one month. Frequency runs front to back. Height and colour are magnetic amplitude in dB re 1 pT/√Hz.</p>
- <p>The ridges running the full length are the Schumann resonances: the Earth–ionosphere cavity ringing near 7.8, 14, 20, 26 and 33 Hz. Lightning drives them, so they breathe once a day as the big thunderstorm regions (Asia, then Africa, then the Americas) rotate under the sun.</p>
+ <p id="blurb"></p>
  <p id="calnote" class="sub"></p>
- <h2>Layers</h2>
- <label><input type="checkbox" id="sheetNS" checked> NS sheet</label>
- <label><input type="checkbox" id="sheetEW"> EW sheet (stacked above)</label>
- <label><input type="checkbox" id="ribbons" checked> Mode ribbons (fitted centre frequency, modes 1–3)</label>
- <label><input type="checkbox" id="laneKp" checked> Lane: Kp geomagnetic index (3-hourly)</label>
- <label><input type="checkbox" id="laneNight" checked> Lane: local night at the station</label>
- <label><input type="checkbox" id="laneQ" checked> Lane: earthquakes M6+ (USGS)</label>
+ <div id="optSurface" class="vopt show">
+  <h2>Layers</h2>
+  <label><input type="checkbox" id="sheetNS" checked> NS sheet</label>
+  <label><input type="checkbox" id="sheetEW"> EW sheet (stacked above)</label>
+  <label><input type="checkbox" id="ribbons" checked> Mode ribbons (fitted centre frequency, modes 1–3)</label>
+  <label><input type="checkbox" id="laneKp" checked> Lane: Kp geomagnetic index (3-hourly)</label>
+  <label><input type="checkbox" id="laneNight" checked> Lane: local night at the station</label>
+  <label><input type="checkbox" id="laneQ" checked> Lane: earthquakes M6+ (USGS)</label>
+ </div>
+ <div id="optStack" class="vopt">
+  <h2>Volume</h2>
+  <label>Slab threshold <input type="range" id="iso" min="0" max="100" value="28" style="flex:1"> <span id="isoVal" class="stat"></span></label>
+  <label><input type="checkbox" id="ridgeOn" checked> Mode ridge sheets (1–3)</label>
+ </div>
+ <div id="optCavity" class="vopt">
+  <h2>Shell</h2>
+  <label><input type="checkbox" id="cavM1" checked> Mode 1 · P<sub>1</sub><sup>1</sup> (red)</label>
+  <label><input type="checkbox" id="cavM2" checked> Mode 2 · P<sub>2</sub><sup>1</sup> (green)</label>
+  <label><input type="checkbox" id="cavM3" checked> Mode 3 · P<sub>3</sub><sup>1</sup> (blue)</label>
+  <p class="sub">One-station inversion: the pattern is the associated-Legendre magnetic standing wave of each measured mode, centred on the chimneys and scaled by this station's amplitude. Not a global map. Modes 4 and up are not in the data.</p>
+ </div>
  <div id="legend">
   <span><i class="sw" style="background:#3b82f6"></i>Kp &lt; 4</span><span><i class="sw" style="background:#f59e0b"></i>Kp 4–5</span><span><i class="sw" style="background:#ef4444"></i>Kp ≥ 5</span>
   <span><i class="sw" style="background:#3730a3"></i>night</span><span><i class="sw" style="background:#f472b6"></i>quake</span>
  </div>
- <h2>Spectrum at cursor</h2>
+ <h2>Spectrum at pin</h2>
  <canvas class="p" id="slice"></canvas>
+ <p class="sub" id="sliceAxis"></p>
  <h2>Correlation, with the null shown</h2>
  <label>Surface series <select id="serA">
    <option value="m1a">Mode 1 amplitude (NS)</option><option value="m1f">Mode 1 frequency (NS)</option>
@@ -64,34 +99,53 @@ document.getElementById('station').textContent = D.station + ' · ' + D.month;
 document.getElementById('credits').innerHTML = D.credits.map(c=>'<div>'+c+'</div>').join('');
 if(D.calnote)document.getElementById('calnote').textContent=D.calnote;
 const nt=D.nt, nf=D.nf, FMAX=D.f0+D.df*(nf-1);
+const q=id=>document.getElementById(id);
+const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',()=>location.reload());
 function dec(s){const b=atob(s.u8);const a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a;}
 const sheets={}; for(const s of D.sheets) sheets[s.name]={u8:dec(s),lo:s.lo,hi:s.hi};
 const dB=(sh,i,j)=>{const v=sh.u8[i*nf+j];return v?sh.lo+(v-1)/254*(sh.hi-sh.lo):NaN;};
+const BLURB={
+ surface:'Time runs left to right across one month. Frequency runs front to back, 6–25 Hz (modes 1–3). Height and colour are magnetic amplitude in dB re 1 pT/√Hz. The ridges near 7.8, 14 and 20 Hz are the Earth–ionosphere cavity ringing. Lightning drives them, so they breathe once a day as Southeast Asia, then Africa, then the Americas rotate under the sun.',
+ stack:'The month is folded into a volume: hour of day (left–right), day of month (up), frequency (front–back). Translucent slabs are the spectrogram. The three mode ridges are sheets through the block; a storm day is where those sheets bulge. Threshold hides quiet voxels. This station resolves 6–25 Hz only.',
+ cavity:'Earth with an exaggerated ionosphere shell. At the scrubbed time the measured mode-1…3 magnetic amplitudes paint associated-Legendre standing waves (P<sub>n</sub><sup>1</sup>) on the shell, centred on the three tropical chimneys. Chimney size follows the UTC afternoon schedule. The terminator, the station, and a Kp tint on the polar cap are at that same instant. This is a one-station inversion, not a global map.',
+ traj:'Mode-1 centre frequency × mode-1 peak amplitude × time. Colour is Kp. The grey helix is the month-mean diurnal loop; the coloured path is the data. The marked interval is a departure from that loop, not a new cavity mode.'
+};
+document.getElementById('blurb').innerHTML=BLURB.surface;
+const CHIMNEYS=D.chimneys||[
+ {name:'Southeast Asia / Maritime Continent',peak_utc:8,sigma_h:2.5,weight:0.8,lat:5,lon:110},
+ {name:'Africa',peak_utc:14,sigma_h:2.5,weight:1.0,lat:5,lon:20},
+ {name:'Americas',peak_utc:20,sigma_h:2.5,weight:0.9,lat:0,lon:-60}
+];
+const nH=48,nD=31,dX=18,dY=16,dZ=4;
+function hourIdx(i){const d=new Date((D.t0+i*D.dt)*1000);return Math.min(nH-1,Math.round((d.getUTCHours()*60+d.getUTCMinutes())/30));}
+function dayIdx(i){return Math.min(nD-1,Math.max(0,new Date((D.t0+i*D.dt)*1000).getUTCDate()-1));}
+const colAt=new Int32Array(nD*nH).fill(-1);for(let i=0;i<nt;i++)colAt[dayIdx(i)*nH+hourIdx(i)]=i;
 // ---------- scene ----------
-const W=()=>Math.max(1,innerWidth-340),H=()=>Math.max(1,innerHeight);
+const W=()=>Math.max(1,innerWidth-340),H=()=>Math.max(1,innerHeight-86);
 const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(W(),H());document.getElementById('gl').appendChild(renderer.domElement);
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x0b0e14);
 const cam=new THREE.PerspectiveCamera(45,W()/H(),1,20000);
-const SX=1600/nt, SZ=720/nf, SY=2.2;   // world units per column / per freq bin / per dB
+const SX=1600/nt, SZ=720/nf, SY=2.2;
 const X=i=>(i-nt/2)*SX, Z=j=>(j-nf/2)*SZ, Y=(sh,v)=>isNaN(v)?0:(v-sh.lo)*SY;
 scene.add(new THREE.AmbientLight(0xffffff,0.55));const dl=new THREE.DirectionalLight(0xffffff,0.8);dl.position.set(-600,900,400);scene.add(dl);
+const gSurface=new THREE.Group(),gStack=new THREE.Group(),gCavity=new THREE.Group(),gTraj=new THREE.Group();
+scene.add(gSurface,gStack,gCavity,gTraj);gStack.visible=gCavity.visible=gTraj.visible=false;
 function viridis(t){t=Math.max(0,Math.min(1,t));const c=[[68,1,84],[72,40,120],[62,74,137],[49,104,142],[38,130,142],[31,158,137],[53,183,121],[109,205,89],[180,222,44],[253,231,37]];const x=t*(c.length-1),i=Math.floor(x),u=x-i,a=c[i],b=c[Math.min(i+1,c.length-1)];return [a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u,a[2]+(b[2]-a[2])*u].map(v=>v/255);}
 function makeSheet(name,yoff){const sh=sheets[name];const g=new THREE.BufferGeometry();const pos=new Float32Array(nt*nf*3),col=new Float32Array(nt*nf*3);
  for(let i=0;i<nt;i++)for(let j=0;j<nf;j++){const k=(i*nf+j)*3,v=dB(sh,i,j);pos[k]=X(i);pos[k+1]=Y(sh,v)+yoff;pos[k+2]=Z(j);const c=isNaN(v)?[.08,.09,.12]:viridis((v-sh.lo)/(sh.hi-sh.lo));col[k]=c[0];col[k+1]=c[1];col[k+2]=c[2];}
  const idx=[];for(let i=0;i<nt-1;i++)for(let j=0;j<nf-1;j++){const a=i*nf+j,b=a+nf;idx.push(a,b,a+1,a+1,b,b+1);}
  g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('color',new THREE.BufferAttribute(col,3));g.setIndex(idx);g.computeVertexNormals();
  const m=new THREE.Mesh(g,new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide}));m.name=name;return m;}
-const meshNS=sheets.NS?makeSheet('NS',0):null; if(meshNS)scene.add(meshNS);
-const EWOFF=140; const meshEW=sheets.EW?makeSheet('EW',EWOFF):null; if(meshEW){meshEW.visible=false;scene.add(meshEW);}
-// ribbons
-const ribbonGroup=new THREE.Group();scene.add(ribbonGroup);
+const meshNS=sheets.NS?makeSheet('NS',0):null; if(meshNS)gSurface.add(meshNS);
+const EWOFF=140; const meshEW=sheets.EW?makeSheet('EW',EWOFF):null; if(meshEW){meshEW.visible=false;gSurface.add(meshEW);}
+const ribbonGroup=new THREE.Group();gSurface.add(ribbonGroup);
 const ribCol=[0xfca5a5,0xfdba74,0xfde68a];
 function addRibbons(name,yoff){const md=D.modes[name];if(!md)return;const sh=sheets[name];
  for(let k=0;k<3;k++){const pts=[];for(let i=0;i<nt;i++){const f=md.f[i][k];if(f<0)continue;const j=Math.min(Math.round((f-D.f0)/D.df),nf-1);const v=dB(sh,i,j);if(isNaN(v))continue;pts.push(new THREE.Vector3(X(i),Y(sh,v)+yoff+2.5,Z((f-D.f0)/D.df)));}
   if(pts.length<2)continue;const g=new THREE.BufferGeometry().setFromPoints(pts);ribbonGroup.add(new THREE.Line(g,new THREE.LineBasicMaterial({color:ribCol[k]})));}}
 if(sheets.NS)addRibbons('NS',0);
-// lanes (in front of the surface, at negative z)
-const laneKp=new THREE.Group(),laneNight=new THREE.Group(),laneQ=new THREE.Group();scene.add(laneKp,laneNight,laneQ);
+const laneKp=new THREE.Group(),laneNight=new THREE.Group(),laneQ=new THREE.Group();gSurface.add(laneKp,laneNight,laneQ);
 const zLane=Z(0)-26, tcol=t=>(t-D.t0)/D.dt;
 for(const [t,kp] of D.kp){const i0=tcol(t),i1=tcol(t+10800);if(i1<0||i0>nt)continue;const h=4+kp*10;
  const b=new THREE.Mesh(new THREE.BoxGeometry((i1-i0)*SX*0.95,h,10),new THREE.MeshLambertMaterial({color:kp>=5?0xef4444:kp>=4?0xf59e0b:0x3b82f6}));b.position.set(X((i0+i1)/2),h/2,zLane);laneKp.add(b);}
@@ -99,38 +153,267 @@ function sunElev(t,lat,lon){const d=t/86400-10957.5;const g=(357.529+0.98560028*
 const night=new Float32Array(nt);for(let i=0;i<nt;i++){let n=0;for(let s=0;s<6;s++)if(sunElev(D.t0+(i+s/6)*D.dt,D.lat,D.lon)<-6)n++;night[i]=n/6;}
 {let i=0;while(i<nt){if(night[i]>0.5){let j=i;while(j<nt&&night[j]>0.5)j++;const b=new THREE.Mesh(new THREE.BoxGeometry((j-i)*SX,3,10),new THREE.MeshBasicMaterial({color:0x3730a3}));b.position.set(X((i+j)/2),1.5,zLane-14);laneNight.add(b);i=j;}else i++;}}
 for(const [t,mag,place] of D.quakes){const i=tcol(t);if(i<0||i>nt)continue;const r=2+(mag-6)*4;const s=new THREE.Mesh(new THREE.SphereGeometry(r,12,12),new THREE.MeshLambertMaterial({color:0xf472b6}));s.position.set(X(i),r+2,zLane-30);s.userData.label='M'+mag+' '+place+' · '+new Date(t*1000).toISOString().slice(0,16).replace('T',' ')+' UTC';laneQ.add(s);}
-// axes + labels
-function label(txt,x,y,z,size){const c=document.createElement('canvas');c.width=256;c.height=64;const g=c.getContext('2d');g.font='28px system-ui';g.fillStyle='#c7cdd9';g.textAlign='center';g.fillText(txt,128,42);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true}));sp.position.set(x,y,z);sp.scale.set(size*4,size,1);scene.add(sp);}
-for(let f=Math.ceil(D.f0/5)*5;f<=FMAX;f+=5){const j=(f-D.f0)/D.df;label(f+' Hz',X(-30),0,Z(j),22);scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(X(0),0,Z(j)),new THREE.Vector3(X(nt),0,Z(j))]),new THREE.LineBasicMaterial({color:0x26303f})));}
-{const d0=new Date(D.t0*1000);for(let day=1;day<=31;day+=3){const t=Date.UTC(d0.getUTCFullYear(),d0.getUTCMonth(),day)/1000;const i=tcol(t);if(i<0||i>nt)continue;label(D.month+'-'+String(day).padStart(2,'0'),X(i),0,Z(nf)+40,22);}}
-label('time (UTC) →',X(nt/2),0,Z(nf)+80,26);label('lanes: Kp · night · quakes',X(nt/2),0,zLane-60,22);
-// camera control (minimal orbit)
-let theta=-0.9,phi=0.95,dist=1900;const target=new THREE.Vector3(0,40,0);
+function label(txt,x,y,z,size,grp){const c=document.createElement('canvas');c.width=256;c.height=64;const g=c.getContext('2d');g.font='28px system-ui';g.fillStyle='#c7cdd9';g.textAlign='center';g.fillText(txt,128,42);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true}));sp.position.set(x,y,z);sp.scale.set(size*4,size,1);(grp||gSurface).add(sp);}
+for(let f=Math.ceil(D.f0/5)*5;f<=FMAX;f+=5){const j=(f-D.f0)/D.df;label(f+' Hz',X(-30),0,Z(j),22,gSurface);gSurface.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(X(0),0,Z(j)),new THREE.Vector3(X(nt),0,Z(j))]),new THREE.LineBasicMaterial({color:0x26303f})));}
+{const d0=new Date(D.t0*1000);for(let day=1;day<=31;day+=3){const t=Date.UTC(d0.getUTCFullYear(),d0.getUTCMonth(),day)/1000;const i=tcol(t);if(i<0||i>nt)continue;label(D.month+'-'+String(day).padStart(2,'0'),X(i),0,Z(nf)+40,22,gSurface);}}
+label('time (UTC) →',X(nt/2),0,Z(nf)+80,26,gSurface);label('lanes: Kp · night · quakes',X(nt/2),0,zLane-60,22,gSurface);
+function makeCursor(color){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(nf*3),3));const ln=new THREE.Line(g,new THREE.LineBasicMaterial({color,transparent:true,opacity:0.9}));ln.visible=false;gSurface.add(ln);return ln;}
+const curHover=makeCursor(0xffffff),curPin=makeCursor(0x7dd3fc);
+function setCursor(ln,sh,i,yoff){const pos=ln.geometry.attributes.position.array;for(let j=0;j<nf;j++){const v=dB(sh,i,j);pos[j*3]=X(i);pos[j*3+1]=Y(sh,v)+yoff+1.5;pos[j*3+2]=Z(j);}ln.geometry.attributes.position.needsUpdate=true;ln.visible=true;}
+// ---------- day stack ----------
+const stackSlabs=[],stackRaw=[],ridgeGroup=new THREE.Group();gStack.add(ridgeGroup);
+(function buildStack(){
+ const sh=sheets.NS;if(!sh)return;
+ const acc=new Float32Array(nD*nH*nf),cnt=new Uint16Array(nD*nH*nf);
+ for(let i=0;i<nt;i++){const d=dayIdx(i),h=hourIdx(i);for(let j=0;j<nf;j++){const v=dB(sh,i,j);if(isNaN(v))continue;const p=(d*nH+h)*nf+j;acc[p]+=v;cnt[p]++;}}
+ for(let d=0;d<nD;d++){
+  const raw=new Float32Array(nH*nf),data=new Uint8Array(nH*nf*4);
+  for(let h=0;h<nH;h++)for(let j=0;j<nf;j++){
+   const p=(d*nH+h)*nf+j,o=h+j*nH,n=cnt[p],t=n?(acc[p]/n-sh.lo)/(sh.hi-sh.lo):-1;
+   raw[o]=t;const c=t<0?[0,0,0]:viridis(t);data[o*4]=c[0]*255;data[o*4+1]=c[1]*255;data[o*4+2]=c[2]*255;data[o*4+3]=0;
+  }
+  const tex=new THREE.DataTexture(data,nH,nf,THREE.RGBAFormat);tex.minFilter=tex.magFilter=THREE.LinearFilter;tex.needsUpdate=true;tex.flipY=false;
+  const mat=new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,side:THREE.DoubleSide});
+  const mesh=new THREE.Mesh(new THREE.PlaneGeometry(nH*dX,nf*dZ),mat);
+  mesh.rotation.x=Math.PI/2;mesh.position.y=d*dY;mesh.userData.day=d;
+  gStack.add(mesh);stackSlabs.push(mesh);stackRaw.push(raw);
+ }
+ const md=D.modes.NS;
+ for(let k=0;k<3;k++){
+  const pos=[],col=[];
+  for(let d=0;d<nD;d++)for(let h=0;h<nH;h++){
+   const i=colAt[d*nH+h];let f=i>=0?md.f[i][k]:-1,a=i>=0?md.a[i][k]:-1;
+   if(f<0)f=[7.8,14.1,20.3][k];
+   const t=a>0?Math.min(1,a/0.55):0.15;
+   const c=viridis(0.35+0.5*t);
+   pos.push((h-nH/2)*dX,d*dY,((f-D.f0)/D.df-nf/2)*dZ);col.push(c[0],c[1],c[2]);
+  }
+  const idx=[];for(let d=0;d<nD-1;d++)for(let h=0;h<nH-1;h++){const a=d*nH+h,b=a+nH;idx.push(a,b,a+1,a+1,b,b+1);}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(pos),3));g.setAttribute('color',new THREE.BufferAttribute(new Float32Array(col),3));g.setIndex(idx);
+  const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:0.55,side:THREE.DoubleSide,depthWrite:false}));
+  m.renderOrder=1;ridgeGroup.add(m);
+ }
+ label('hour →',(nH/4)*dX,-20,(-nf/2)*dZ-40,22,gStack);
+ label('day ↑',(-nH/2)*dX-40,(nD/2)*dY,(-nf/2)*dZ,22,gStack);
+ label('6 Hz',(-nH/2)*dX-10,-10,((0-nf/2)*dZ),18,gStack);
+ label('25 Hz',(-nH/2)*dX-10,-10,((nf-1-nf/2)*dZ),18,gStack);
+})();
+const stackHi=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,(-nf/2)*dZ),new THREE.Vector3(0,0,(nf/2)*dZ)]),new THREE.LineBasicMaterial({color:0x7dd3fc}));
+gStack.add(stackHi);
+function applyIso(){const sh=sheets.NS,thr=q('iso').value/100;q('isoVal').textContent=(sh.lo+thr*(sh.hi-sh.lo)).toFixed(1)+' dB';
+ for(let d=0;d<stackRaw.length;d++){const raw=stackRaw[d],tex=stackSlabs[d].material.map,data=tex.image.data;
+  for(let p=0;p<raw.length;p++){const t=raw[p];data[p*4+3]=(t>=thr)?Math.floor(50+205*Math.max(0,t)):0;}tex.needsUpdate=true;}}
+// ---------- cavity globe ----------
+const RE=90,RI=118;
+function llVec(lat,lon,R){const p=lat*Math.PI/180,l=lon*Math.PI/180;return new THREE.Vector3(R*Math.cos(p)*Math.sin(l),R*Math.sin(p),R*Math.cos(p)*Math.cos(l));}
+function angDist(la1,lo1,la2,lo2){const p1=la1*Math.PI/180,p2=la2*Math.PI/180,d=(lo2-lo1)*Math.PI/180;return Math.acos(Math.max(-1,Math.min(1,Math.sin(p1)*Math.sin(p2)+Math.cos(p1)*Math.cos(p2)*Math.cos(d))));}
+function Pn1(n,x){const s=Math.sqrt(Math.max(0,1-x*x));if(n===1)return s;if(n===2)return 3*Math.abs(x)*s;if(n===3)return 1.5*Math.abs(5*x*x-1)*s;return 0;}
+function subsolar(t){const d=t/86400-10957.5;const g=(357.529+0.98560028*d)*Math.PI/180,q=280.459+0.98564736*d;const L=(q+1.915*Math.sin(g)+0.02*Math.sin(2*g))*Math.PI/180;const e=(23.439-0.00000036*d)*Math.PI/180;const dec=Math.asin(Math.sin(e)*Math.sin(L));const RA=Math.atan2(Math.cos(e)*Math.sin(L),Math.cos(L));const GMST=(18.697374558+24.06570982441908*d)%24;let lon=((RA*180/Math.PI-GMST*15)%360+540)%360-180;return {lat:dec*180/Math.PI,lon};}
+function chimW(hour,c){let d=hour-c.peak_utc;while(d>12)d-=24;while(d<-12)d+=24;return c.weight*Math.exp(-0.5*(d/c.sigma_h)*(d/c.sigma_h));}
+const earth=new THREE.Mesh(new THREE.SphereGeometry(RE,48,32),new THREE.MeshLambertMaterial({color:0x1b3a5a}));gCavity.add(earth);
+const sunLight=new THREE.DirectionalLight(0xfff1d0,1.15);gCavity.add(sunLight);gCavity.add(new THREE.AmbientLight(0x334155,0.35));
+{const pts=[];
+ for(let lat=-60;lat<=60;lat+=30){for(let k=0;k<64;k++)pts.push(llVec(lat,k/64*360-180,RE+0.4),llVec(lat,(k+1)/64*360-180,RE+0.4));}
+ for(let lon=-180;lon<180;lon+=30){for(let k=0;k<32;k++)pts.push(llVec(-80+k*160/32,lon,RE+0.4),llVec(-80+(k+1)*160/32,lon,RE+0.4));}
+ const g=new THREE.BufferGeometry().setFromPoints(pts);gCavity.add(new THREE.LineSegments(g,new THREE.LineBasicMaterial({color:0x4b6280,transparent:true,opacity:0.45})));}
+const shellGeo=new THREE.SphereGeometry(RI,96,48);
+const shellCol=new Float32Array(shellGeo.attributes.position.count*3);
+shellGeo.setAttribute('color',new THREE.BufferAttribute(shellCol,3));
+const shell=new THREE.Mesh(shellGeo,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:0.78,side:THREE.DoubleSide,depthWrite:false}));
+shell.renderOrder=1;gCavity.add(shell);
+const termLine=new THREE.Line(new THREE.BufferGeometry(),new THREE.LineBasicMaterial({color:0xfde68a}));gCavity.add(termLine);
+const chimMeshes=CHIMNEYS.map((c,k)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(4,16,12),new THREE.MeshBasicMaterial({color:[0xfbbf24,0x34d399,0x60a5fa][k]}));m.position.copy(llVec(c.lat,c.lon,RE+5));m.userData.label=c.name+' · peak '+c.peak_utc+' UTC';gCavity.add(m);return m;});
+const stn=new THREE.Mesh(new THREE.SphereGeometry(2.4,12,10),new THREE.MeshBasicMaterial({color:0xfef08a}));stn.position.copy(llVec(D.lat,D.lon,RE+3));stn.userData.label=D.station;gCavity.add(stn);
+gCavity.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([llVec(D.lat,D.lon,RE),llVec(D.lat,D.lon,RI)]),new THREE.LineBasicMaterial({color:0xfef08a})));
+label('Sierra Nevada',stn.position.x,stn.position.y+10,stn.position.z,16,gCavity);
+function paintShell(i){
+ const pos=shellGeo.attributes.position,nV=pos.count,t=D.t0+i*D.dt,hour=new Date(t*1000).getUTCHours()+new Date(t*1000).getUTCMinutes()/60;
+ const mdN=D.modes.NS,mdE=D.modes.EW,kp=kpAt(t);
+ const on=[q('cavM1').checked,q('cavM2').checked,q('cavM3').checked];
+ const w=CHIMNEYS.map(c=>chimW(hour,c));
+ let ns=mdN.a[i][0],ew=mdE&&mdE.a[i][0];
+ const azW=CHIMNEYS.map(c=>{
+  if(!(ns>0&&ew>0))return 1;
+  const p1=D.lat*Math.PI/180,p2=c.lat*Math.PI/180,dl=(c.lon-D.lon)*Math.PI/180;
+  const az=Math.atan2(Math.sin(dl)*Math.cos(p2),Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl));
+  const pred=Math.atan2(Math.cos(az),-Math.sin(az)),obs=Math.atan2(ew,ns);
+  let d=obs-pred;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;
+  return 0.4+0.6*Math.exp(-0.5*(d/0.8)*(d/0.8));
+ });
+ const rgb=new Float32Array(nV*3);let mx=0;
+ for(let v=0;v<nV;v++){
+  const x=pos.getX(v),y=pos.getY(v),z=pos.getZ(v),r=Math.hypot(x,y,z);
+  const lat=Math.asin(y/r)*180/Math.PI,lon=Math.atan2(x,z)*180/Math.PI;
+  let rC=0,gC=0,bC=0;
+  for(let k=0;k<CHIMNEYS.length;k++){
+   const th=angDist(lat,lon,CHIMNEYS[k].lat,CHIMNEYS[k].lon),ct=Math.cos(th),wk=w[k]*azW[k];
+   for(let n=0;n<3;n++){if(!on[n])continue;const a=mdN.a[i][n];if(!(a>0))continue;const mag=wk*a*Pn1(n+1,ct);if(n===0)rC+=mag;else if(n===1)gC+=mag;else bC+=mag;}
+  }
+  if(Math.abs(lat)>55){const p=(Math.abs(lat)-55)/35*kp/9;rC+=p*0.55;gC*=1-p*0.4;}
+  rgb[v*3]=rC;rgb[v*3+1]=gC;rgb[v*3+2]=bC;mx=Math.max(mx,rC,gC,bC);
+ }
+ const dim=0.25+0.75*Math.min(1,(Math.max(0,mdN.a[i][0])+Math.max(0,mdN.a[i][1])+Math.max(0,mdN.a[i][2]))/1.1);
+ const s=mx>0?dim/mx:0;
+ for(let v=0;v<nV;v++){shellCol[v*3]=rgb[v*3]*s;shellCol[v*3+1]=rgb[v*3+1]*s;shellCol[v*3+2]=rgb[v*3+2]*s;}
+ shellGeo.attributes.color.needsUpdate=true;
+ const sun=subsolar(t);sunLight.position.copy(llVec(sun.lat,sun.lon,400));
+ const axis=llVec(sun.lat,sun.lon,1).normalize();
+ let east=new THREE.Vector3().crossVectors(axis,new THREE.Vector3(0,1,0));if(east.length()<0.2)east.crossVectors(axis,new THREE.Vector3(1,0,0));east.normalize();
+ const north=new THREE.Vector3().crossVectors(east,axis).normalize();
+ const tpts=[];for(let k=0;k<=96;k++){const a=k/96*Math.PI*2;tpts.push(east.clone().multiplyScalar(Math.cos(a)).add(north.clone().multiplyScalar(Math.sin(a))).multiplyScalar(RE+0.8));}
+ termLine.geometry.dispose();termLine.geometry=new THREE.BufferGeometry().setFromPoints(tpts);
+ for(let k=0;k<chimMeshes.length;k++){const sc=1.2+5.5*w[k];chimMeshes[k].scale.setScalar(sc);}
+}
+// ---------- trajectory ----------
+(function buildTraj(){
+ const md=D.modes.NS;if(!md)return;
+ const as=[],fs=[];for(let i=0;i<nt;i++){if(md.a[i][0]>0)as.push(md.a[i][0]);if(md.f[i][0]>0)fs.push(md.f[i][0]);}
+ const aLo=Math.min(...as),aHi=Math.max(...as),fLo=Math.min(...fs),fHi=Math.max(...fs);
+ const AY=v=>(v-aLo)/(aHi-aLo)*220, FZ=v=>(v-(fLo+fHi)/2)/(fHi-fLo)*260;
+ const meanA=new Float64Array(nH),meanF=new Float64Array(nH),meanN=new Uint16Array(nH);
+ for(let i=0;i<nt;i++){const h=hourIdx(i);if(md.a[i][0]>0&&md.f[i][0]>0){meanA[h]+=md.a[i][0];meanF[h]+=md.f[i][0];meanN[h]++;}}
+ const helix=[];for(let d=0;d<nD;d++)for(let h=0;h<nH;h++){const n=meanN[h]||1;const i=d*nH+h;helix.push(new THREE.Vector3(X(Math.min(i,nt-1)),AY(meanA[h]/n),FZ(meanF[h]/n)));}
+ gTraj.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(helix),new THREE.LineBasicMaterial({color:0x64748b,transparent:true,opacity:0.55})));
+ const pos=[],col=[];
+ for(let i=0;i<nt;i++){
+  const a=md.a[i][0],f=md.f[i][0];if(!(a>0&&f>0))continue;
+  const kp=kpAt(D.t0+i*D.dt);const c=kp>=5?[0.93,0.27,0.27]:kp>=4?[0.96,0.62,0.04]:[0.23,0.51,0.96];
+  pos.push(X(i),AY(a),FZ(f));col.push(c[0],c[1],c[2]);
+ }
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(pos),3));g.setAttribute('color',new THREE.BufferAttribute(new Float32Array(col),3));
+ gTraj.add(new THREE.Line(g,new THREE.LineBasicMaterial({vertexColors:true})));
+ window._trajY=AY;window._trajZ=FZ;
+ label('time →',X(nt/2),-20,0,22,gTraj);
+ label('mode-1 amp',X(0),240,0,20,gTraj);
+ label('mode-1 f',X(0),0,140,20,gTraj);
+})();
+const trajMark=new THREE.Mesh(new THREE.SphereGeometry(8,12,10),new THREE.MeshBasicMaterial({color:0x7dd3fc}));gTraj.add(trajMark);
+if(D.storm_t){const si=Math.max(0,Math.min(nt-1,Math.round(tcol(D.storm_t))));const md=D.modes.NS;if(md.a[si][0]>0){const m=new THREE.Mesh(new THREE.SphereGeometry(12,12,10),new THREE.MeshBasicMaterial({color:0xfde68a}));m.position.set(X(si),window._trajY(md.a[si][0]),window._trajZ(md.f[si][0]));gTraj.add(m);}}
+// ---------- camera (damped orbit; no snap) ----------
+let theta=-0.9,phi=0.95,dist=1900,dTh=0,dPh=0,dDs=0,dTx=0,dTy=0,dTz=0;
+const target=new THREE.Vector3(0,40,0),goal={th:theta,ph:phi,dist:dist,tx:0,ty:40,tz:0},going={flag:false};
+const DAMP=reduceMotion?1:0.08;
+const PRESET={
+ surface:{th:-0.9,ph:0.95,dist:1900,tx:0,ty:40,tz:0},
+ stack:{th:0.55,ph:0.85,dist:1450,tx:0,ty:(nD/2)*dY,tz:0},
+ cavity:{th:0.35,ph:1.05,dist:380,tx:0,ty:0,tz:0},
+ traj:{th:-0.75,ph:1.05,dist:1650,tx:0,ty:90,tz:0}
+};
 function place(){cam.position.set(target.x+dist*Math.sin(phi)*Math.sin(theta),target.y+dist*Math.cos(phi),target.z+dist*Math.sin(phi)*Math.cos(theta));cam.lookAt(target);}
-place();const el=renderer.domElement;let drag=null;
-el.addEventListener('mousedown',e=>{drag={x:e.clientX,y:e.clientY,b:e.button};});addEventListener('mouseup',()=>drag=null);el.addEventListener('contextmenu',e=>e.preventDefault());
-el.addEventListener('mousemove',e=>{if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.x=e.clientX;drag.y=e.clientY;if(drag.b===0){theta-=dx*0.005;phi=Math.max(0.05,Math.min(1.5,phi-dy*0.005));}else{const r=new THREE.Vector3().setFromMatrixColumn(cam.matrix,0),u=new THREE.Vector3().setFromMatrixColumn(cam.matrix,1);target.add(r.multiplyScalar(-dx*dist*0.0012)).add(u.multiplyScalar(dy*dist*0.0012));}place();}else hover(e);});
-el.addEventListener('wheel',e=>{e.preventDefault();dist=Math.max(200,Math.min(8000,dist*(1+e.deltaY*0.001)));place();},{passive:false});
-addEventListener('resize',()=>{renderer.setSize(W(),H());cam.aspect=W()/H();cam.updateProjectionMatrix();});
-// hover -> tooltip + slice
+place();
+function camGoto(p){goal.th=p.th;goal.ph=p.ph;goal.dist=p.dist;goal.tx=p.tx;goal.ty=p.ty;goal.tz=p.tz;dTh=dPh=dDs=dTx=dTy=dTz=0;
+ if(reduceMotion){theta=p.th;phi=p.ph;dist=p.dist;target.set(p.tx,p.ty,p.tz);place();}
+ else going.flag=true;}
+const el=renderer.domElement;let drag=null,moved=false;
+el.addEventListener('mousedown',e=>{drag={x:e.clientX,y:e.clientY,b:e.button};moved=false;going.flag=false;});
+addEventListener('mouseup',e=>{if(drag&&!moved&&drag.b===0)pinFromEvent(e);drag=null;});
+el.addEventListener('contextmenu',e=>e.preventDefault());
+el.addEventListener('mousemove',e=>{
+ if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.hypot(dx,dy)>3)moved=true;drag.x=e.clientX;drag.y=e.clientY;
+  if(reduceMotion){
+   if(drag.b===0){theta-=dx*0.005;phi=Math.max(0.05,Math.min(1.55,phi-dy*0.005));}
+   else{const r=new THREE.Vector3().setFromMatrixColumn(cam.matrix,0),u=new THREE.Vector3().setFromMatrixColumn(cam.matrix,1);target.add(r.multiplyScalar(-dx*dist*0.0012)).add(u.multiplyScalar(dy*dist*0.0012));}
+   place();
+  }else if(drag.b===0){dTh-=dx*0.005;dPh-=dy*0.005;}
+  else{const r=new THREE.Vector3().setFromMatrixColumn(cam.matrix,0),u=new THREE.Vector3().setFromMatrixColumn(cam.matrix,1);dTx+=-dx*dist*0.0012*r.x+dy*dist*0.0012*u.x;dTy+=-dx*dist*0.0012*r.y+dy*dist*0.0012*u.y;dTz+=-dx*dist*0.0012*r.z+dy*dist*0.0012*u.z;}}
+ else hover(e);
+});
+el.addEventListener('wheel',e=>{e.preventDefault();going.flag=false;if(reduceMotion){dist=Math.max(80,Math.min(8000,dist*(1+e.deltaY*0.001)));place();}else dDs+=e.deltaY*0.001;},{passive:false});
+addEventListener('resize',()=>{renderer.setSize(W(),H());cam.aspect=W()/H();cam.updateProjectionMatrix();drawKpStrip();drawSlice(sheets[pinSheet],pin,D.modes[pinSheet]?D.modes[pinSheet].f[pin]:null);drawX();});
+// hover -> tooltip + thin cursor only (spectrum stays pinned)
 const ray=new THREE.Raycaster(),mouse=new THREE.Vector2(),tip=document.getElementById('tip');
 const fmtT=t=>new Date(t*1000).toISOString().slice(0,16).replace('T',' ')+' UTC';
 function kpAt(t){for(const [a,k] of D.kp){if(t>=a&&t<a+10800)return k;}return 0;}
-function hover(e){mouse.x=e.clientX/W()*2-1;mouse.y=-(e.clientY/H())*2+1;ray.setFromCamera(mouse,cam);
- const targets=[meshNS,meshEW].filter(m=>m&&m.visible).concat(laneQ.children);const hit=ray.intersectObjects(targets)[0];if(!hit)return;
- if(hit.object.userData.label){tip.innerHTML='<b>'+hit.object.userData.label+'</b>';return;}
- const sh=sheets[hit.object.name];const i=Math.round(hit.point.x/SX+nt/2),j=Math.round(hit.point.z/SZ+nf/2);if(i<0||i>=nt||j<0||j>=nf)return;
- const v=dB(sh,i,j),md=D.modes[hit.object.name],mf=md?md.f[i]:null;
- tip.innerHTML='<b>'+hit.object.name+'</b> '+fmtT(D.t0+i*D.dt)+'<br>'+(D.f0+j*D.df).toFixed(2)+' Hz · '+(isNaN(v)?'no data':v.toFixed(1)+' dB')+(mf&&mf[0]>0?'<br>modes: '+mf.map(x=>x.toFixed(2)).join(' / ')+' Hz':'')+'<br><span class="sub">night '+Math.round(night[i]*100)+'% · Kp '+kpAt(D.t0+i*D.dt).toFixed(1)+'</span>';
- drawSlice(sh,i,mf);}
-function drawSlice(sh,i,mf){const c=document.getElementById('slice'),g=c.getContext('2d');c.width=c.clientWidth*2;c.height=240;g.clearRect(0,0,c.width,c.height);g.strokeStyle='#7dd3fc';g.lineWidth=2;g.beginPath();
- for(let j=0;j<nf;j++){const v=dB(sh,i,j);const x=j/nf*c.width,y=c.height-(isNaN(v)?0:(v-sh.lo)/(sh.hi-sh.lo))*c.height*0.9-10;j?g.lineTo(x,y):g.moveTo(x,y);}g.stroke();
- g.fillStyle='#8b93a5';g.font='20px "IBM Plex Mono",monospace';for(let f=Math.ceil(D.f0/5)*5;f<=FMAX;f+=5){g.fillText(f+' Hz',(f-D.f0)/(FMAX-D.f0)*c.width+2,c.height-2);}
- if(mf)for(let k=0;k<3;k++)if(mf[k]>0){g.strokeStyle='#'+ribCol[k].toString(16).padStart(6,'0');g.lineWidth=1;const x=(mf[k]-D.f0)/D.df/nf*c.width;g.beginPath();g.moveTo(x,0);g.lineTo(x,c.height);g.stroke();}}
+let view='surface',pin=0,pinSheet='NS';
+function hover(e){
+ mouse.x=(e.clientX/W())*2-1;mouse.y=-(e.clientY/H())*2+1;ray.setFromCamera(mouse,cam);
+ if(view==='surface'){
+  const targets=[meshNS,meshEW].filter(m=>m&&m.visible).concat(laneQ.children);const hit=ray.intersectObjects(targets)[0];
+  if(!hit){curHover.visible=false;return;}
+  if(hit.object.userData.label){tip.innerHTML='<b>'+hit.object.userData.label+'</b>';curHover.visible=false;return;}
+  const sh=sheets[hit.object.name];const i=Math.round(hit.point.x/SX+nt/2),j=Math.round(hit.point.z/SZ+nf/2);if(i<0||i>=nt||j<0||j>=nf)return;
+  const v=dB(sh,i,j),md=D.modes[hit.object.name],mf=md?md.f[i]:null;
+  tip.innerHTML='<b>'+hit.object.name+'</b> '+fmtT(D.t0+i*D.dt)+'<br>'+(D.f0+j*D.df).toFixed(2)+' Hz · '+(isNaN(v)?'no data':v.toFixed(1)+' dB')+(mf&&mf[0]>0?'<br>modes: '+mf.map(x=>x.toFixed(2)).join(' / ')+' Hz':'')+'<br><span class="sub">night '+Math.round(night[i]*100)+'% · Kp '+kpAt(D.t0+i*D.dt).toFixed(1)+' · click to pin</span>';
+  setCursor(curHover,sh,i,hit.object.name==='EW'?EWOFF:0);
+ }else if(view==='stack'){
+  const hit=ray.intersectObjects(stackSlabs)[0];if(!hit||!hit.uv)return;
+  const d=hit.object.userData.day,h=Math.min(nH-1,Math.max(0,Math.floor(hit.uv.x*nH))),j=Math.min(nf-1,Math.max(0,Math.floor(hit.uv.y*nf)));
+  const i=colAt[d*nH+h];const v=i>=0?dB(sheets.NS,i,j):NaN;
+  tip.innerHTML='<b>day '+(d+1)+'</b> · '+((h*0.5)|0).toString().padStart(2,'0')+':'+(h%2?'30':'00')+' UTC<br>'+(D.f0+j*D.df).toFixed(2)+' Hz · '+(isNaN(v)?'no data':v.toFixed(1)+' dB')+'<br><span class="sub">click to pin</span>';
+ }else if(view==='cavity'){
+  const hit=ray.intersectObjects(chimMeshes.concat([stn]))[0];
+  if(hit)tip.innerHTML='<b>'+hit.object.userData.label+'</b>';
+ }
+}
+function drawSlice(sh,i,mf){const c=document.getElementById('slice'),g=c.getContext('2d');c.width=c.clientWidth*2;c.height=240;g.clearRect(0,0,c.width,c.height);
+ const lo=sh.lo,hi=sh.hi,padL=58,padR=8,padT=12,padB=28,W=c.width,H=c.height;
+ g.strokeStyle='#26303f';g.fillStyle='#8b93a5';g.font='16px "IBM Plex Mono",monospace';
+ for(let t=0;t<=4;t++){const y=padT+(H-padT-padB)*t/4;g.beginPath();g.moveTo(padL,y);g.lineTo(W-padR,y);g.stroke();g.fillText((hi-(hi-lo)*t/4).toFixed(1),4,y+5);}
+ g.strokeStyle='#7dd3fc';g.lineWidth=2;g.beginPath();let pen=false;
+ for(let j=0;j<nf;j++){const v=dB(sh,i,j);if(isNaN(v)){pen=false;continue;}const x=padL+j/nf*(W-padL-padR),y=padT+(1-(v-lo)/(hi-lo))*(H-padT-padB);pen?g.lineTo(x,y):g.moveTo(x,y);pen=true;}g.stroke();
+ g.fillStyle='#8b93a5';g.font='16px "IBM Plex Mono",monospace';
+ for(let f=Math.ceil(D.f0/5)*5;f<=FMAX;f+=5){g.fillText(f+'',padL+(f-D.f0)/(FMAX-D.f0)*(W-padL-padR),H-6);}
+ if(mf)for(let k=0;k<3;k++)if(mf[k]>0){g.strokeStyle='#'+ribCol[k].toString(16).padStart(6,'0');g.lineWidth=1;const x=padL+(mf[k]-D.f0)/D.df/nf*(W-padL-padR);g.beginPath();g.moveTo(x,padT);g.lineTo(x,H-padB);g.stroke();}
+ q('sliceAxis').textContent='fixed axis '+lo.toFixed(1)+' … '+hi.toFixed(1)+' dB re 1 pT/√Hz  ·  '+pinSheet+'  ·  click / arrows pin';}
+function pinFromEvent(e){
+ mouse.x=(e.clientX/W())*2-1;mouse.y=-(e.clientY/H())*2+1;ray.setFromCamera(mouse,cam);
+ if(view==='surface'){
+  const targets=[meshNS,meshEW].filter(m=>m&&m.visible);const hit=ray.intersectObjects(targets)[0];if(!hit)return;
+  const i=Math.round(hit.point.x/SX+nt/2);if(i<0||i>=nt)return;pinSheet=hit.object.name;pinAt(i);
+ }else if(view==='stack'){
+  const hit=ray.intersectObjects(stackSlabs)[0];if(!hit||!hit.uv)return;
+  const i=colAt[hit.object.userData.day*nH+Math.min(nH-1,Math.max(0,Math.floor(hit.uv.x*nH)))];if(i>=0)pinAt(i);
+ }
+}
+function pinAt(i){
+ pin=Math.max(0,Math.min(nt-1,i|0));
+ const sh=sheets[pinSheet]||sheets.NS,md=D.modes[pinSheet]||D.modes.NS,mf=md?md.f[pin]:null;
+ q('tSlide').value=String(pin);
+ const t=D.t0+pin*D.dt,nearStorm=D.storm_t&&Math.abs(t-D.storm_t)<3*3600;
+ q('tLabel').textContent=fmtT(t);
+ q('stormTag').textContent=nearStorm?'Kp '+kpAt(t).toFixed(1)+' — flagged geomagnetic interval':'Kp '+kpAt(t).toFixed(1);
+ drawSlice(sh,pin,mf);
+ setCursor(curPin,sh,pin,pinSheet==='EW'?EWOFF:0);
+ const h=hourIdx(pin),d=dayIdx(pin);
+ stackHi.position.set((h-nH/2)*dX,d*dY,0);
+ const a=md.a[pin][0],f=md.f[pin][0];
+ if(a>0&&f>0&&window._trajY)trajMark.position.set(X(pin),window._trajY(a),window._trajZ(f));
+ if(gCavity.visible)paintShell(pin);
+ drawKpStrip();
+ tip.innerHTML='<b>'+pinSheet+' pinned</b> <span class="mono">'+fmtT(t)+'</span>'+(nearStorm?'<br>Kp '+kpAt(t).toFixed(1)+' — the month\'s strongest geomagnetic interval':'')+(mf&&mf[0]>0?'<br>modes: <span class="mono">'+mf.map(x=>x.toFixed(2)).join(' / ')+'</span> Hz':'')+'<br><span class="sub">drag: rotate · wheel: zoom · right-drag: pan · arrows step 30 min (shift: 1 day)</span>';
+}
+function drawKpStrip(){const c=q('kpStrip'),g=c.getContext('2d');const w=c.width=Math.max(2,c.clientWidth*2),h=c.height=Math.max(2,c.clientHeight*2);g.clearRect(0,0,w,h);
+ const tEnd=D.t0+(nt-1)*D.dt;
+ for(const [t,kp] of D.kp){const x0=(t-D.t0)/(tEnd-D.t0)*w,x1=(t+10800-D.t0)/(tEnd-D.t0)*w;g.fillStyle=kp>=5?'#ef4444':kp>=4?'#f59e0b':'#3b82f6';g.fillRect(x0,h*0.2,Math.max(1,x1-x0),h*0.6);}
+ if(D.storm_t){const x=(D.storm_t-D.t0)/(tEnd-D.t0)*w;g.fillStyle='#fde68a';g.fillRect(x-2,0,4,h);g.beginPath();g.moveTo(x,2);g.lineTo(x-7,12);g.lineTo(x+7,12);g.closePath();g.fill();}
+ const xp=pin/(nt-1)*w;g.fillStyle='#7dd3fc';g.fillRect(xp-1.5,0,3,h);}
+q('kpStrip').addEventListener('click',e=>{const r=e.target.getBoundingClientRect();pinAt(Math.round((e.clientX-r.left)/r.width*(nt-1)));});
 // toggles
-const q=id=>document.getElementById(id);
 q('sheetNS').onchange=e=>{if(meshNS)meshNS.visible=e.target.checked;};q('sheetEW').onchange=e=>{if(meshEW)meshEW.visible=e.target.checked;};
 q('ribbons').onchange=e=>ribbonGroup.visible=e.target.checked;q('laneKp').onchange=e=>laneKp.visible=e.target.checked;q('laneNight').onchange=e=>laneNight.visible=e.target.checked;q('laneQ').onchange=e=>laneQ.visible=e.target.checked;
+q('iso').oninput=applyIso;q('ridgeOn').onchange=e=>ridgeGroup.visible=e.target.checked;
+q('cavM1').onchange=()=>paintShell(pin);q('cavM2').onchange=()=>paintShell(pin);q('cavM3').onchange=()=>paintShell(pin);
+q('tSlide').max=String(nt-1);q('tSlide').oninput=e=>pinAt(+e.target.value);
+document.querySelectorAll('#modes button').forEach(b=>b.onclick=()=>setView(b.dataset.v));
+function setView(v){
+ view=v;
+ gSurface.visible=v==='surface';gStack.visible=v==='stack';gCavity.visible=v==='cavity';gTraj.visible=v==='traj';
+ document.querySelectorAll('#modes button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+ q('optSurface').classList.toggle('show',v==='surface');q('optStack').classList.toggle('show',v==='stack');q('optCavity').classList.toggle('show',v==='cavity');
+ q('blurb').innerHTML=BLURB[v];
+ camGoto(PRESET[v]);
+ if(v==='cavity')paintShell(pin);
+ if(v==='stack')applyIso();
+ pinAt(pin);
+}
+addEventListener('keydown',e=>{
+ const tag=(e.target.tagName||'');if(tag==='SELECT'||(tag==='INPUT'&&e.target.type!=='range'))return;
+ if(tag==='INPUT'&&e.target.type==='range'&&(e.key==='ArrowLeft'||e.key==='ArrowRight'))return;
+ const step=e.shiftKey?nH:1;
+ if(e.key==='ArrowLeft'){pinAt(pin-step);e.preventDefault();}
+ if(e.key==='ArrowRight'){pinAt(pin+step);e.preventDefault();}
+});
+applyIso();
 // ---------- correlation ----------
 function series(id){const md=D.modes.NS,sh=sheets.NS,a=new Float64Array(nt);
  for(let i=0;i<nt;i++){let v=NaN;
@@ -153,9 +436,18 @@ function drawX(){const A=series(q('serA').value),B=series(q('serB').value);const
  const r0=out[maxlag].r;const verdict=Math.abs(best.r)>band?'peak OUTSIDE the null band':'stays inside the null band (null result)';
  q('xstat').textContent=`r(lag 0) = ${isNaN(r0)?'n/a':r0.toFixed(3)}   max |r| = ${best.r.toFixed(3)} at ${(best.L*D.dt/3600).toFixed(1)} h\nN = ${out[maxlag].n}  N_eff = ${neff.toFixed(0)}  95% band = ±${band.toFixed(3)}\n${verdict}\n(positive lag: event series leads)`;}
 q('serA').onchange=drawX;q('serB').onchange=drawX;drawX();
-// page at rest: show the strongest geomagnetic interval of the month if one is flagged, else mid-month
-{const t=D.storm_t||(D.t0+nt/2*D.dt);const i=Math.max(0,Math.min(nt-1,Math.round(tcol(t))));const sh=sheets.NS;const md=D.modes.NS;const mf=md?md.f[i]:null;
- tip.innerHTML='<b>NS</b> <span class="mono">'+fmtT(D.t0+i*D.dt)+'</span>'+(D.storm_t?'<br>Kp '+kpAt(D.t0+i*D.dt).toFixed(1)+' — the month\'s strongest geomagnetic interval':'')+(mf&&mf[0]>0?'<br>modes: <span class="mono">'+mf.map(x=>x.toFixed(2)).join(' / ')+'</span> Hz':'')+'<br><span class="sub">drag: rotate · wheel: zoom · right-drag: pan · hover for detail</span>';
- drawSlice(sh,i,mf);}
-(function loop(){requestAnimationFrame(loop);renderer.render(scene,cam);})();
+{const t=D.storm_t||(D.t0+nt/2*D.dt);pinAt(Math.max(0,Math.min(nt-1,Math.round(tcol(t)))));}
+(function loop(){
+ requestAnimationFrame(loop);
+ if(going.flag&&!reduceMotion){
+  const k=0.14;theta+=(goal.th-theta)*k;phi+=(goal.ph-phi)*k;dist+=(goal.dist-dist)*k;
+  target.x+=(goal.tx-target.x)*k;target.y+=(goal.ty-target.y)*k;target.z+=(goal.tz-target.z)*k;
+  if(Math.abs(goal.th-theta)+Math.abs(goal.dist-dist)<1e-2)going.flag=false;
+ }else{
+  theta+=dTh*DAMP;phi=Math.max(0.05,Math.min(1.55,phi+dPh*DAMP));dist=Math.max(80,Math.min(8000,dist*(1+dDs*DAMP)));
+  target.x+=dTx*DAMP;target.y+=dTy*DAMP;target.z+=dTz*DAMP;
+  const f=1-DAMP;dTh*=f;dPh*=f;dDs*=f;dTx*=f;dTy*=f;dTz*=f;
+ }
+ place();renderer.render(scene,cam);
+})();
 </script></body></html>
