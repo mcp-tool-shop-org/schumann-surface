@@ -75,13 +75,18 @@ small{color:var(--mut)}
   <label><input type="checkbox" id="cavM3" checked> Mode 3 · P<sub>3</sub><sup>1</sup> (blue)</label>
   <p class="sub">One-station inversion: the pattern is the associated-Legendre magnetic standing wave of each measured mode, centred on the chimneys and scaled by this station's amplitude. Yellow fans are the measured magnetic polarisation (two opposite lobes: 180° ambiguity); their width is 1 − coherence. Not a global map. Modes 4 and up are not in the data.</p>
  </div>
+ <div id="optTraj" class="vopt">
+  <h2>Time</h2>
+  <label>Time compression <input type="range" id="tComp" min="1" max="10" value="6" style="flex:1"> <span id="tCompVal" class="stat">6×</span></label>
+  <p class="sub">Default 6×: one day is a short step against the frequency × amplitude plane, so the diurnal helix reads as a coil. 1× is the raw month-long streak.</p>
+ </div>
  <div id="lookCavity" class="vopt">
   <h2>What to look for</h2>
   <p class="sub">Two opposite yellow fans from Sierra Nevada — the axial polarisation is 180° ambiguous. October fans should look fat (median mode-1 coh ≈ 0.18), not a needle; a rare high-coh column narrows them. Scrub to ~14 UTC: Africa (green) should sit in a fan. ~20 UTC: the Americas (blue). October chimney dots sit south of the equator (SON); June sits north (JJA). Pin tooltip prints az / coh. The globe still says one-station inversion.</p>
  </div>
  <div id="lookTraj" class="vopt">
   <h2>What to look for</h2>
-  <p class="sub">Grey helix is the month-mean diurnal loop; amplitude comes from <span class="stat">diurnal</span>, frequency from the hour-bin mean of fitted mode-1 f. The coloured path is the data (Kp as colour). Compare June vs October: the loop’s amplitude and the hour of the daily bulge should move. A yellow bead marks <span class="stat">storm_t</span> when set (Oct 2 03:00 UTC). A path that leaves the helix is a departure, not a fourth mode.</p>
+  <p class="sub">Grey tube is the month-mean diurnal coil (amplitude from <span class="stat">diurnal</span>). Time is compressed so one day is a short step; use the slider if you want the raw streak. The coloured path is the data (Kp as colour). The yellow bead with the halo is the flagged storm. A path that leaves the coil is a departure, not a fourth mode.</p>
  </div>
  <div id="legend">
   <span><i class="sw" style="background:#3b82f6"></i>Kp &lt; 4</span><span><i class="sw" style="background:#f59e0b"></i>Kp 4–5</span><span><i class="sw" style="background:#ef4444"></i>Kp ≥ 5</span>
@@ -171,7 +176,7 @@ function sunElev(t,lat,lon){const d=t/86400-10957.5;const g=(357.529+0.98560028*
 const night=new Float32Array(nt);for(let i=0;i<nt;i++){let n=0;for(let s=0;s<6;s++)if(sunElev(D.t0+(i+s/6)*D.dt,D.lat,D.lon)<-6)n++;night[i]=n/6;}
 {let i=0;while(i<nt){if(night[i]>0.5){let j=i;while(j<nt&&night[j]>0.5)j++;const b=new THREE.Mesh(new THREE.BoxGeometry((j-i)*SX,3,10),new THREE.MeshBasicMaterial({color:0x3730a3}));b.position.set(X((i+j)/2),1.5,zLane-14);laneNight.add(b);i=j;}else i++;}}
 for(const [t,mag,place] of D.quakes){const i=tcol(t);if(i<0||i>nt)continue;const r=2+(mag-6)*4;const s=new THREE.Mesh(new THREE.SphereGeometry(r,12,12),new THREE.MeshLambertMaterial({color:0xf472b6}));s.position.set(X(i),r+2,zLane-30);s.userData.label='M'+mag+' '+place+' · '+new Date(t*1000).toISOString().slice(0,16).replace('T',' ')+' UTC';laneQ.add(s);}
-function label(txt,x,y,z,size,grp){const c=document.createElement('canvas');c.width=256;c.height=64;const g=c.getContext('2d');g.font='28px system-ui';g.fillStyle='#c7cdd9';g.textAlign='center';g.fillText(txt,128,42);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true}));sp.position.set(x,y,z);sp.scale.set(size*4,size,1);(grp||gSurface).add(sp);}
+function label(txt,x,y,z,size,grp){const c=document.createElement('canvas');c.width=256;c.height=64;const g=c.getContext('2d');g.font='28px system-ui';g.fillStyle='#c7cdd9';g.textAlign='center';g.fillText(txt,128,42);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true}));sp.position.set(x,y,z);sp.scale.set(size*4,size,1);(grp||gSurface).add(sp);return sp;}
 for(let f=Math.ceil(D.f0/5)*5;f<=FMAX;f+=5){const j=(f-D.f0)/D.df;label(f+' Hz',X(-30),0,Z(j),22,gSurface);gSurface.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(X(0),0,Z(j)),new THREE.Vector3(X(nt),0,Z(j))]),new THREE.LineBasicMaterial({color:0x26303f})));}
 {const d0=new Date(D.t0*1000);for(let day=1;day<=nD;day+=3){const t=Date.UTC(d0.getUTCFullYear(),d0.getUTCMonth(),day)/1000;const i=tcol(t);if(i<0||i>nt)continue;label(D.month+'-'+String(day).padStart(2,'0'),X(i),0,Z(nf)+40,22,gSurface);}}
 label('time (UTC) →',X(nt/2),0,Z(nf)+80,26,gSurface);label('lanes: Kp · night · quakes',X(nt/2),0,zLane-60,22,gSurface);
@@ -233,8 +238,9 @@ function gcAz(lat1,lon1,lat2,lon2){const p1=lat1*Math.PI/180,p2=lat2*Math.PI/180
 function destPoint(lat,lon,bear,dist){const p1=lat*Math.PI/180,l1=lon*Math.PI/180;const p2=Math.asin(Math.sin(p1)*Math.cos(dist)+Math.cos(p1)*Math.sin(dist)*Math.cos(bear));const l2=l1+Math.atan2(Math.sin(bear)*Math.sin(dist)*Math.cos(p1),Math.cos(dist)-Math.sin(p1)*Math.sin(p2));return {lat:p2*180/Math.PI,lon:((l2*180/Math.PI+540)%360)-180};}
 function polAt(i,mode){if(!D.pol||!D.pol.az)return null;const az=D.pol.az[i][mode],coh=D.pol.coh[i][mode];if(!(az>-8)||!(coh>-8))return null;return {az,coh,ell:D.pol.ell[i][mode]};}
 function fanHalf(coh){return 0.18+0.95*(1-Math.max(0,Math.min(1,coh)));}
-const earth=new THREE.Mesh(new THREE.SphereGeometry(RE,48,32),new THREE.MeshLambertMaterial({color:0x1b3a5a}));gCavity.add(earth);
-const sunLight=new THREE.DirectionalLight(0xfff1d0,1.15);gCavity.add(sunLight);gCavity.add(new THREE.AmbientLight(0x334155,0.35));
+const earth=new THREE.Mesh(new THREE.SphereGeometry(RE,48,32),new THREE.MeshLambertMaterial({color:0x3d6d9a,emissive:0x122033}));gCavity.add(earth);
+const sunLight=new THREE.DirectionalLight(0xfff1d0,1.45);gCavity.add(sunLight);gCavity.add(new THREE.AmbientLight(0x9bb6d4,0.9));
+gCavity.add(new THREE.Mesh(new THREE.SphereGeometry(RI-0.8,48,32),new THREE.MeshBasicMaterial({color:0x2a4a66,transparent:true,opacity:0.55,side:THREE.BackSide})));
 {const pts=[];
  for(let lat=-60;lat<=60;lat+=30){for(let k=0;k<64;k++)pts.push(llVec(lat,k/64*360-180,RE+0.4),llVec(lat,(k+1)/64*360-180,RE+0.4));}
  for(let lon=-180;lon<180;lon+=30){for(let k=0;k<32;k++)pts.push(llVec(-80+k*160/32,lon,RE+0.4),llVec(-80+(k+1)*160/32,lon,RE+0.4));}
@@ -242,26 +248,33 @@ const sunLight=new THREE.DirectionalLight(0xfff1d0,1.15);gCavity.add(sunLight);g
 const shellGeo=new THREE.SphereGeometry(RI,96,48);
 const shellCol=new Float32Array(shellGeo.attributes.position.count*3);
 shellGeo.setAttribute('color',new THREE.BufferAttribute(shellCol,3));
-const shell=new THREE.Mesh(shellGeo,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:0.78,side:THREE.DoubleSide,depthWrite:false}));
+const shell=new THREE.Mesh(shellGeo,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:0.92,side:THREE.DoubleSide,depthWrite:false}));
 shell.renderOrder=1;gCavity.add(shell);
 const termLine=new THREE.Line(new THREE.BufferGeometry(),new THREE.LineBasicMaterial({color:0xfde68a}));gCavity.add(termLine);
-const chimMeshes=CHIMNEYS.map((c,k)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(4,16,12),new THREE.MeshBasicMaterial({color:[0xfbbf24,0x34d399,0x60a5fa][k]}));m.position.copy(llVec(c.lat,c.lon,RE+5));m.userData.label=c.name+' · '+c.lat+'°, '+c.lon+'° · peak '+c.peak_utc+' UTC'+(c.season?' · '+c.season:'');gCavity.add(m);return m;});
+const chimMeshes=CHIMNEYS.map((c,k)=>{const col=[0xfbbf24,0x34d399,0x60a5fa][k];const m=new THREE.Mesh(new THREE.SphereGeometry(7,16,12),new THREE.MeshBasicMaterial({color:col}));m.position.copy(llVec(c.lat,c.lon,RI+3));m.userData.label=c.name+' · '+c.lat+'°, '+c.lon+'° · peak '+c.peak_utc+' UTC'+(c.season?' · '+c.season:'');m.renderOrder=4;gCavity.add(m);const halo=new THREE.Mesh(new THREE.SphereGeometry(11,12,10),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.28,depthWrite:false}));halo.position.copy(m.position);halo.renderOrder=3;gCavity.add(halo);return m;});
 const stn=new THREE.Mesh(new THREE.SphereGeometry(2.4,12,10),new THREE.MeshBasicMaterial({color:0xfef08a}));stn.position.copy(llVec(D.lat,D.lon,RE+3));stn.userData.label=D.station;gCavity.add(stn);
 gCavity.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([llVec(D.lat,D.lon,RE),llVec(D.lat,D.lon,RI)]),new THREE.LineBasicMaterial({color:0xfef08a})));
 label('Sierra Nevada',stn.position.x,stn.position.y+10,stn.position.z,16,gCavity);
 label('one-station inversion',0,-RE-18,0,18,gCavity);
-const FAN_NRAY=10,FAN_NRAD=14;
+const FAN_NRAY=16,FAN_NRAD=16,FAN_R=RI+5;
 function makeFanGeom(){const nv=(FAN_NRAY+1)*(FAN_NRAD+1),pos=new Float32Array(nv*3),idx=[];for(let r=0;r<FAN_NRAY;r++)for(let s=0;s<FAN_NRAD;s++){const a=r*(FAN_NRAD+1)+s,b=a+FAN_NRAD+1;idx.push(a,b,a+1,a+1,b,b+1);}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setIndex(idx);return g;}
-function makeFanMesh(){return new THREE.Mesh(makeFanGeom(),new THREE.MeshBasicMaterial({color:0xfde68a,transparent:true,opacity:0.22,side:THREE.DoubleSide,depthWrite:false,visible:false}));}
+function makeFanMesh(){return new THREE.Mesh(makeFanGeom(),new THREE.MeshBasicMaterial({color:0xfde68a,transparent:true,opacity:0.38,side:THREE.DoubleSide,depthWrite:false,visible:false}));}
 const fanA=makeFanMesh(),fanB=makeFanMesh();fanA.renderOrder=fanB.renderOrder=2;gCavity.add(fanA,fanB);
-const spineA=new THREE.Line(new THREE.BufferGeometry(),new THREE.LineBasicMaterial({color:0xfde68a,transparent:true,opacity:0.85})),spineB=new THREE.Line(new THREE.BufferGeometry(),new THREE.LineBasicMaterial({color:0xfde68a,transparent:true,opacity:0.85}));
-gCavity.add(spineA,spineB);
-function setFan(mesh,spine,bearing,half){
+const spineA=new THREE.Line(new THREE.BufferGeometry(),new THREE.LineBasicMaterial({color:0xfff6c8,transparent:true,opacity:0.95})),spineB=new THREE.Line(new THREE.BufferGeometry(),new THREE.LineBasicMaterial({color:0xfff6c8,transparent:true,opacity:0.95}));
+const edgeA=new THREE.Line(new THREE.BufferGeometry(),new THREE.LineBasicMaterial({color:0xfff3c4})),edgeB=new THREE.Line(new THREE.BufferGeometry(),new THREE.LineBasicMaterial({color:0xfff3c4}));
+gCavity.add(spineA,spineB,edgeA,edgeB);
+function fanPt(bear,frac,R){const d=destPoint(D.lat,D.lon,bear,Math.max(0.03,frac*Math.PI*0.82));return llVec(d.lat,d.lon,R);}
+function setFan(mesh,spine,edge,bearing,half){
  const pos=mesh.geometry.attributes.position.array;let p=0;
- for(let r=0;r<=FAN_NRAY;r++){const az=bearing-half+2*half*r/FAN_NRAY;for(let s=0;s<=FAN_NRAD;s++){const d=destPoint(D.lat,D.lon,az,Math.max(0.03,(s/FAN_NRAD)*Math.PI*0.88));const v=llVec(d.lat,d.lon,RE+1.6);pos[p++]=v.x;pos[p++]=v.y;pos[p++]=v.z;}}
+ for(let r=0;r<=FAN_NRAY;r++){const az=bearing-half+2*half*r/FAN_NRAY;for(let s=0;s<=FAN_NRAD;s++){const d=destPoint(D.lat,D.lon,az,Math.max(0.03,(s/FAN_NRAD)*Math.PI*0.82));const v=llVec(d.lat,d.lon,FAN_R);pos[p++]=v.x;pos[p++]=v.y;pos[p++]=v.z;}}
  mesh.geometry.attributes.position.needsUpdate=true;mesh.visible=true;
- const spts=[];for(let s=0;s<=24;s++){const d=destPoint(D.lat,D.lon,bearing,Math.max(0.03,(s/24)*Math.PI*0.88));spts.push(llVec(d.lat,d.lon,RE+2.2));}
+ const spts=[];for(let s=0;s<=24;s++){const d=destPoint(D.lat,D.lon,bearing,Math.max(0.03,(s/24)*Math.PI*0.82));spts.push(llVec(d.lat,d.lon,FAN_R+1.5));}
  spine.geometry.dispose();spine.geometry=new THREE.BufferGeometry().setFromPoints(spts);spine.visible=true;
+ const epts=[];
+ for(let s=0;s<=20;s++)epts.push(fanPt(bearing-half,s/20,FAN_R+1.2));
+ for(let r=0;r<=16;r++)epts.push(fanPt(bearing-half+2*half*r/16,1,FAN_R+1.2));
+ for(let s=20;s>=0;s--)epts.push(fanPt(bearing+half,s/20,FAN_R+1.2));
+ edge.geometry.dispose();edge.geometry=new THREE.BufferGeometry().setFromPoints(epts);edge.visible=true;
 }
 function paintShell(i){
  const pos=shellGeo.attributes.position,nV=pos.count,t=D.t0+i*D.dt,hour=new Date(t*1000).getUTCHours()+new Date(t*1000).getUTCMinutes()/60;
@@ -269,8 +282,8 @@ function paintShell(i){
  const on=[q('cavM1').checked,q('cavM2').checked,q('cavM3').checked];
  const wUtc=CHIMNEYS.map(c=>chimW(hour,c));
  const p1=polAt(i,0);let half=0.7,bears=null;
- if(p1){half=fanHalf(p1.coh);bears=[p1.az+Math.PI/2,p1.az+Math.PI/2+Math.PI];setFan(fanA,spineA,bears[0],half);setFan(fanB,spineB,bears[1],half);fanA.material.opacity=fanB.material.opacity=0.10+0.32*Math.max(0,Math.min(1,p1.coh));}
- else{fanA.visible=fanB.visible=spineA.visible=spineB.visible=false;}
+ if(p1){half=fanHalf(p1.coh);bears=[p1.az+Math.PI/2,p1.az+Math.PI/2+Math.PI];setFan(fanA,spineA,edgeA,bears[0],half);setFan(fanB,spineB,edgeB,bears[1],half);fanA.material.opacity=fanB.material.opacity=0.28+0.30*Math.max(0,Math.min(1,p1.coh));}
+ else{fanA.visible=fanB.visible=spineA.visible=spineB.visible=edgeA.visible=edgeB.visible=false;}
  const azW=CHIMNEYS.map(c=>{
   if(!bears)return 1;
   const caz=gcAz(D.lat,D.lon,c.lat,c.lon);
@@ -290,9 +303,10 @@ function paintShell(i){
   if(Math.abs(lat)>55){const p=(Math.abs(lat)-55)/35*kp/9;rC+=p*0.55;gC*=1-p*0.4;}
   rgb[v*3]=rC;rgb[v*3+1]=gC;rgb[v*3+2]=bC;mx=Math.max(mx,rC,gC,bC);
  }
- const dim=0.25+0.75*Math.min(1,(Math.max(0,mdN.a[i][0])+Math.max(0,mdN.a[i][1])+Math.max(0,mdN.a[i][2]))/1.1);
+ const dim=0.45+0.55*Math.min(1,(Math.max(0,mdN.a[i][0])+Math.max(0,mdN.a[i][1])+Math.max(0,mdN.a[i][2]))/1.1);
  const s=mx>0?dim/mx:0;
- for(let v=0;v<nV;v++){shellCol[v*3]=rgb[v*3]*s;shellCol[v*3+1]=rgb[v*3+1]*s;shellCol[v*3+2]=rgb[v*3+2]*s;}
+ const BASE=[0.16,0.30,0.42];
+ for(let v=0;v<nV;v++){shellCol[v*3]=BASE[0]+(1-BASE[0])*rgb[v*3]*s;shellCol[v*3+1]=BASE[1]+(1-BASE[1])*rgb[v*3+1]*s;shellCol[v*3+2]=BASE[2]+(1-BASE[2])*rgb[v*3+2]*s;}
  shellGeo.attributes.color.needsUpdate=true;
  const sun=subsolar(t);sunLight.position.copy(llVec(sun.lat,sun.lon,400));
  const axis=llVec(sun.lat,sun.lon,1).normalize();
@@ -300,40 +314,52 @@ function paintShell(i){
  const north=new THREE.Vector3().crossVectors(east,axis).normalize();
  const tpts=[];for(let k=0;k<=96;k++){const a=k/96*Math.PI*2;tpts.push(east.clone().multiplyScalar(Math.cos(a)).add(north.clone().multiplyScalar(Math.sin(a))).multiplyScalar(RE+0.8));}
  termLine.geometry.dispose();termLine.geometry=new THREE.BufferGeometry().setFromPoints(tpts);
- for(let k=0;k<chimMeshes.length;k++){const sc=1.2+5.5*w[k];chimMeshes[k].scale.setScalar(sc);}
+ for(let k=0;k<chimMeshes.length;k++){const sc=1.4+4.2*w[k];chimMeshes[k].scale.setScalar(sc);}
 }
 // ---------- trajectory ----------
-(function buildTraj(){
- const md=D.modes.NS;if(!md)return;
- const as=[],fs=[];for(let i=0;i<nt;i++){if(md.a[i][0]>0)as.push(md.a[i][0]);if(md.f[i][0]>0)fs.push(md.f[i][0]);}
- const aLo=Math.min(...as),aHi=Math.max(...as),fLo=Math.min(...fs),fHi=Math.max(...fs);
- const AY=v=>(v-aLo)/(aHi-aLo)*220, FZ=v=>(v-(fLo+fHi)/2)/(fHi-fLo)*260;
- const meanA=new Float64Array(nH),meanF=new Float64Array(nH),meanN=new Uint16Array(nH);
- for(let i=0;i<nt;i++){const h=hourIdx(i);if(md.a[i][0]>0&&md.f[i][0]>0){meanA[h]+=md.a[i][0];meanF[h]+=md.f[i][0];meanN[h]++;}}
- const dia=D.diurnal&&D.diurnal.NS;
+const mdTraj=D.modes.NS;
+const trajAs=[],trajFs=[];if(mdTraj){for(let i=0;i<nt;i++){if(mdTraj.a[i][0]>0)trajAs.push(mdTraj.a[i][0]);if(mdTraj.f[i][0]>0)trajFs.push(mdTraj.f[i][0]);}}
+const aLo=Math.min(...trajAs,0.2),aHi=Math.max(...trajAs,0.6),fLo=Math.min(...trajFs,7),fHi=Math.max(...trajFs,8.5);
+const AY=v=>(v-aLo)/(aHi-aLo)*220, FZ=v=>(v-(fLo+fHi)/2)/(fHi-fLo)*260;
+window._trajY=AY;window._trajZ=FZ;
+let trajCompress=6;
+function tX(i){return (i-nt/2)*(SX/trajCompress);}
+const meanA=new Float64Array(nH),meanF=new Float64Array(nH),meanN=new Uint16Array(nH);
+if(mdTraj){for(let i=0;i<nt;i++){const h=hourIdx(i);if(mdTraj.a[i][0]>0&&mdTraj.f[i][0]>0){meanA[h]+=mdTraj.a[i][0];meanF[h]+=mdTraj.f[i][0];meanN[h]++;}}}
+const dia=D.diurnal&&D.diurnal.NS;
+const trajPath=new THREE.Line(new THREE.BufferGeometry(),new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:0.92}));gTraj.add(trajPath);
+let trajTube=null;
+const trajMark=new THREE.Mesh(new THREE.SphereGeometry(7,12,10),new THREE.MeshBasicMaterial({color:0x7dd3fc}));gTraj.add(trajMark);
+const trajStorm=new THREE.Mesh(new THREE.SphereGeometry(16,16,12),new THREE.MeshBasicMaterial({color:0xfde68a}));trajStorm.visible=false;gTraj.add(trajStorm);
+const trajHalo=new THREE.Mesh(new THREE.SphereGeometry(28,16,12),new THREE.MeshBasicMaterial({color:0xfde68a,transparent:true,opacity:0.22,depthWrite:false}));trajHalo.visible=false;gTraj.add(trajHalo);
+const trajStormLbl=label('storm',0,0,0,20,gTraj);trajStormLbl.visible=false;
+const trajTimeLbl=label('time →',0,-28,0,22,gTraj);
+label('mode-1 amp',0,240,0,20,gTraj);
+label('mode-1 f',0,0,150,20,gTraj);
+function layoutTraj(){
+ if(!mdTraj)return;
  const helix=[];for(let d=0;d<nD;d++)for(let h=0;h<nH;h++){
   const hour=Math.min(23,(h/2)|0);
   const aMean=(dia&&dia[hour]&&dia[hour][0]>0)?dia[hour][0]:(meanN[h]?meanA[h]/meanN[h]:NaN);
   const fMean=meanN[h]?meanF[h]/meanN[h]:NaN;
   if(!(aMean>0&&fMean>0))continue;
-  helix.push(new THREE.Vector3(X(Math.min(d*nH+h,nt-1)),AY(aMean),FZ(fMean)));
+  helix.push(new THREE.Vector3(tX(Math.min(d*nH+h,nt-1)),AY(aMean),FZ(fMean)));
  }
- if(helix.length>1)gTraj.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(helix),new THREE.LineBasicMaterial({color:0x64748b,transparent:true,opacity:0.55})));
+ if(trajTube){gTraj.remove(trajTube);trajTube.geometry.dispose();trajTube=null;}
+ if(helix.length>8){const curve=new THREE.CatmullRomCurve3(helix);trajTube=new THREE.Mesh(new THREE.TubeGeometry(curve,Math.min(helix.length,800),4.2,8,false),new THREE.MeshBasicMaterial({color:0xe2e8f0,transparent:true,opacity:0.88}));gTraj.add(trajTube);}
  const pos=[],col=[];
  for(let i=0;i<nt;i++){
-  const a=md.a[i][0],f=md.f[i][0];if(!(a>0&&f>0))continue;
-  const kp=kpAt(D.t0+i*D.dt);const c=kp>=5?[0.93,0.27,0.27]:kp>=4?[0.96,0.62,0.04]:[0.23,0.51,0.96];
-  pos.push(X(i),AY(a),FZ(f));col.push(c[0],c[1],c[2]);
+  const a=mdTraj.a[i][0],f=mdTraj.f[i][0];if(!(a>0&&f>0))continue;
+  const kp=kpAt(D.t0+i*D.dt);const c=kp>=5?[0.93,0.27,0.27]:kp>=4?[0.96,0.62,0.04]:[0.35,0.62,0.98];
+  pos.push(tX(i),AY(a),FZ(f));col.push(c[0],c[1],c[2]);
  }
+ trajPath.geometry.dispose();
  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(pos),3));g.setAttribute('color',new THREE.BufferAttribute(new Float32Array(col),3));
- gTraj.add(new THREE.Line(g,new THREE.LineBasicMaterial({vertexColors:true})));
- window._trajY=AY;window._trajZ=FZ;
- label('time →',X(nt/2),-20,0,22,gTraj);
- label('mode-1 amp',X(0),240,0,20,gTraj);
- label('mode-1 f',X(0),0,140,20,gTraj);
-})();
-const trajMark=new THREE.Mesh(new THREE.SphereGeometry(8,12,10),new THREE.MeshBasicMaterial({color:0x7dd3fc}));gTraj.add(trajMark);
-if(D.storm_t){const si=Math.max(0,Math.min(nt-1,Math.round(tcol(D.storm_t))));const md=D.modes.NS;if(md.a[si][0]>0){const m=new THREE.Mesh(new THREE.SphereGeometry(12,12,10),new THREE.MeshBasicMaterial({color:0xfde68a}));m.position.set(X(si),window._trajY(md.a[si][0]),window._trajZ(md.f[si][0]));gTraj.add(m);}}
+ trajPath.geometry=g;
+ if(D.storm_t){const si=Math.max(0,Math.min(nt-1,Math.round(tcol(D.storm_t))));if(mdTraj.a[si][0]>0){const p=new THREE.Vector3(tX(si),AY(mdTraj.a[si][0]),FZ(mdTraj.f[si][0]));trajStorm.position.copy(p);trajHalo.position.copy(p);trajStormLbl.position.set(p.x,p.y+36,p.z);trajStorm.visible=trajHalo.visible=trajStormLbl.visible=true;}}
+ trajTimeLbl.position.set(tX(nt-1)*0.55,-28,0);
+}
+layoutTraj();
 // ---------- camera (damped orbit; no snap) ----------
 let theta=-0.9,phi=0.95,dist=1900,dTh=0,dPh=0,dDs=0,dTx=0,dTy=0,dTz=0;
 const target=new THREE.Vector3(0,40,0),goal={th:theta,ph:phi,dist:dist,tx:0,ty:40,tz:0},going={flag:false};
@@ -341,8 +367,8 @@ const DAMP=reduceMotion?1:0.08;
 const PRESET={
  surface:{th:-0.9,ph:0.95,dist:1900,tx:0,ty:40,tz:0},
  stack:{th:0.55,ph:0.85,dist:1450,tx:0,ty:(nD/2)*dY,tz:0},
- cavity:{th:0.35,ph:1.05,dist:380,tx:0,ty:0,tz:0},
- traj:{th:-0.75,ph:1.05,dist:1650,tx:0,ty:90,tz:0}
+ cavity:{th:0.55,ph:1.22,dist:250,tx:0,ty:8,tz:0},
+ traj:{th:-0.85,ph:1.18,dist:520,tx:0,ty:110,tz:0}
 };
 function place(){cam.position.set(target.x+dist*Math.sin(phi)*Math.sin(theta),target.y+dist*Math.cos(phi),target.z+dist*Math.sin(phi)*Math.cos(theta));cam.lookAt(target);}
 place();
@@ -422,7 +448,7 @@ function pinAt(i){
  const h=hourIdx(pin),d=dayIdx(pin);
  stackHi.position.set((h-nH/2)*dX,d*dY,0);
  const a=md.a[pin][0],f=md.f[pin][0];
- if(a>0&&f>0&&window._trajY)trajMark.position.set(X(pin),window._trajY(a),window._trajZ(f));
+ if(a>0&&f>0&&window._trajY)trajMark.position.set(tX(pin),window._trajY(a),window._trajZ(f));
  if(gCavity.visible)paintShell(pin);
  drawKpStrip();
  const p1=polAt(pin,0);const polTxt=p1?'<br>pol M1: az '+(p1.az*180/Math.PI).toFixed(0)+'° · coh '+p1.coh.toFixed(2)+' · fan ±'+(fanHalf(p1.coh)*180/Math.PI).toFixed(0)+'°':'';
@@ -439,6 +465,7 @@ q('kpStrip').addEventListener('click',e=>{const r=e.target.getBoundingClientRect
 q('sheetNS').onchange=e=>{if(meshNS)meshNS.visible=e.target.checked;};q('sheetEW').onchange=e=>{if(meshEW)meshEW.visible=e.target.checked;};
 q('ribbons').onchange=e=>ribbonGroup.visible=e.target.checked;q('laneKp').onchange=e=>laneKp.visible=e.target.checked;q('laneNight').onchange=e=>laneNight.visible=e.target.checked;q('laneQ').onchange=e=>laneQ.visible=e.target.checked;
 q('iso').oninput=applyIso;q('ridgeOn').onchange=e=>ridgeGroup.visible=e.target.checked;
+q('tComp').oninput=e=>{trajCompress=+e.target.value||6;q('tCompVal').textContent=trajCompress+'×';layoutTraj();if(mdTraj){const a=mdTraj.a[pin][0],f=mdTraj.f[pin][0];if(a>0&&f>0)trajMark.position.set(tX(pin),AY(a),FZ(f));}};
 q('cavM1').onchange=()=>paintShell(pin);q('cavM2').onchange=()=>paintShell(pin);q('cavM3').onchange=()=>paintShell(pin);
 q('tSlide').max=String(nt-1);q('tSlide').oninput=e=>pinAt(+e.target.value);
 document.querySelectorAll('#modes button').forEach(b=>b.onclick=()=>setView(b.dataset.v));
@@ -446,7 +473,7 @@ function setView(v){
  view=v;
  gSurface.visible=v==='surface';gStack.visible=v==='stack';gCavity.visible=v==='cavity';gTraj.visible=v==='traj';
  document.querySelectorAll('#modes button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
- q('optSurface').classList.toggle('show',v==='surface');q('optStack').classList.toggle('show',v==='stack');q('optCavity').classList.toggle('show',v==='cavity');
+ q('optSurface').classList.toggle('show',v==='surface');q('optStack').classList.toggle('show',v==='stack');q('optCavity').classList.toggle('show',v==='cavity');q('optTraj').classList.toggle('show',v==='traj');
  q('lookCavity').classList.toggle('show',v==='cavity');q('lookTraj').classList.toggle('show',v==='traj');
  q('blurb').innerHTML=BLURB[v];
  camGoto(PRESET[v]);

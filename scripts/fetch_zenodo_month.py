@@ -73,9 +73,34 @@ def main(month):
     os.makedirs(outdir, exist_ok=True)
     span = os.path.join(ROOT, f"span_{month}.part")
     if not os.path.exists(span) or os.path.getsize(span) < hi - lo:
-        print(f"streaming {len(m)} entries, {(hi-lo)/1e9:.2f} GB compressed -> {span}", flush=True)
-        t = time.time(); curl_range(lo, hi - 1, span)
-        print(f"done in {time.time()-t:.0f}s", flush=True)
+        # Zenodo throttles each connection to ~1.6 MB/s but tolerates parallel range streams
+        # (measured 2026-09-08: 8 streams ~5.6 MB/s aggregate). Fetch the span as N chunks at once.
+        n = int(os.environ.get("ZENODO_STREAMS", "16"))
+        size = hi - lo; step = -(-size // n)
+        parts = [(lo + i * step, min(lo + (i + 1) * step, hi) - 1) for i in range(n) if lo + i * step < hi]
+        print(f"streaming {len(m)} entries, {size/1e9:.2f} GB compressed in {len(parts)} parallel streams -> {span}", flush=True)
+        t = time.time()
+        from concurrent.futures import ThreadPoolExecutor
+        def fetch_part(k_ab):
+            k, (a, b) = k_ab; out = f"{span}.{k:02d}"
+            for attempt in range(4):
+                if os.path.exists(out) and os.path.getsize(out) == b - a + 1:
+                    return out
+                subprocess.run(["curl", "-sSL", "-r", f"{a}-{b}", URL, "-o", out], check=False)
+            if not (os.path.exists(out) and os.path.getsize(out) == b - a + 1):
+                raise RuntimeError(f"chunk {k} incomplete after 4 attempts")
+            return out
+        with ThreadPoolExecutor(max_workers=len(parts)) as ex:
+            outs = list(ex.map(fetch_part, enumerate(parts)))
+        with open(span, "wb") as w:
+            for o in outs:
+                with open(o, "rb") as r:
+                    while True:
+                        buf = r.read(1 << 24)
+                        if not buf: break
+                        w.write(buf)
+                os.remove(o)
+        print(f"done in {time.time()-t:.0f}s ({size/1e6/(time.time()-t):.1f} MB/s)", flush=True)
     with open(span, "rb") as f:
         for name, meth, csz, usz, lho in m:
             f.seek(lho - lo)
