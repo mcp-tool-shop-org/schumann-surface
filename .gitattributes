@@ -1,0 +1,5 @@
+# Pod scripts must stay LF: Debian bash rejects "pipefail". Windows checkouts default to CRLF.
+*.sh text eol=lf
+*.py text eol=lf
+*.mjs text eol=lf
+*.json text eol=lf
