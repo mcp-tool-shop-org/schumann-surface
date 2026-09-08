@@ -2,6 +2,8 @@
 # Whole loop, unattended: up -> sync -> dry -> train+predict -> fetch -> down (this pod only).
 set -uo pipefail
 cd "$(dirname "$0")"
+# Windows edits leave CRLF behind; Debian bash on the pod will not run "pipefail".
+sed -i 's/$//' scripts/*.sh scripts/*.py lora-config.json
 node runpod.mjs up || exit 1
 S=$(cat ~/.ssh/runpod_schumann_pod.json)
 IP=$(echo "$S" | python -c "import json,sys;print(json.load(sys.stdin)['publicIp'])")
