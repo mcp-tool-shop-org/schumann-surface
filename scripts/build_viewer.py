@@ -21,6 +21,40 @@ def down_t(a, step):
         return np.nanmean(a, axis=1)
 
 
+def year_block():
+    """Daily means over all processed months: mode fits (unmasked) per sensor, Kp max/mean, slot count."""
+    import glob as _g
+    kp = {}
+    for kf in _g.glob(os.path.join(ROOT, "data", "lanes", "kp_*.txt")):
+        for line in open(kf):
+            c = line.split()
+            if len(c) >= 9 and c[0].isdigit():
+                kp.setdefault(f"{c[0]}-{c[1]}-{c[2]}", []).append(float(c[7]))
+    days = {}
+    for s, name in ((0, "NS"), (1, "EW")):
+        for p in sorted(_g.glob(os.path.join(ROOT, "data", "derived", f"SN_*_{s}.npz"))):
+            z = np.load(p); t = z["t"]; md = z["modes"].copy()
+            for k, (lo_f, hi_f) in enumerate(((6.5, 9.5), (12.5, 16.0), (18.5, 22.5))):
+                bad = ~((md[:, k, 0] >= lo_f) & (md[:, k, 0] <= hi_f) & (md[:, k, 3] > 0.3) & (md[:, k, 3] < 5.0)); md[bad, k, :] = np.nan
+            dates = [dt.datetime.fromtimestamp(x, dt.timezone.utc).strftime("%Y-%m-%d") for x in t]
+            for d in sorted(set(dates)):
+                idx = np.array([i for i, x in enumerate(dates) if x == d])
+                row = days.setdefault(d, {"date": d, "n": 0})
+                with np.errstate(all="ignore"):
+                    row[name] = {"f": np.round(np.nanmean(md[idx, :, 0], 0), 3).tolist(), "a": np.round(np.nanmean(md[idx, :, 1], 0), 4).tolist(),
+                                 "amed": np.round(np.nanmedian(md[idx, :, 1], 0), 4).tolist()}
+                row["n"] = max(row["n"], int(len(idx)))
+    out = []
+    for d in sorted(days):
+        r = days[d]; k = kp.get(d, [])
+        r["kp_max"] = max(k) if k else None; r["kp_mean"] = round(sum(k) / len(k), 2) if k else None
+        for name in ("NS", "EW"):
+            if name in r:
+                r[name] = {kk: [(-1 if (v is None or v != v) else v) for v in vv] for kk, vv in r[name].items()}
+        out.append(r)
+    return {"days": out, "note": "Daily means of unmasked mode fits (f Hz, a peak pT/sqrtHz, amed median) per sensor across every processed month; kp_max/kp_mean from GFZ; -1 = no data. Built for a Year mode and a Kp dose-response panel; the known effect is about +6 % in mode-1 amplitude on Kp >= 7 days (Cann 2026), so show the null band."}
+
+
 def main(month):
     sheets, modes = [], {}
     t = f = None
@@ -107,11 +141,14 @@ def main(month):
         hours = ((t0 + np.arange(nt) * dts) % 86400) // 3600
         with np.errstate(all="ignore"):
             diurnal[name] = [[round(float(np.nanmean(a[hours == h, k])), 4) for k in range(3)] for h in range(24)]
+    # Year block (contract 4): one row per calendar day across EVERY processed month in data/derived,
+    # so a single page can show the twelve-month picture and the Kp dose-response one month cannot.
+    year = year_block()
     data = {"station": "Sierra Nevada ELF station, Spain (37.04 N, 3.32 W, 2500 m)", "lat": 37.04, "lon": -3.32,
             "month": f"{yyyymm[:4]}-{yyyymm[4:]}", "t0": t0, "dt": dts, "nt": nt, "f0": FMIN, "df": float(f[1] - f[0]) * FBIN, "nf": nfo,
             "storm_t": dt.datetime(2013, 10, 2, 3, tzinfo=dt.timezone.utc).timestamp() if month == "1310" else None,
             "sheets": sheets, "modes": modes, "kp": kp, "quakes": quakes,
-            "chimneys": chimneys, "chimneys_month": chimneys_month, "chimney": chimney, "diurnal": diurnal, "pol": pol, "contract": 3,
+            "chimneys": chimneys, "chimneys_month": chimneys_month, "chimney": chimney, "diurnal": diurnal, "pol": pol, "year": year, "contract": 4,
             "calnote": "The surface covers 6 to 25 Hz, the band the station calibrates (modes 1 to 3). Below 6 Hz the sensor's 1/f noise dominates and the coil resonates near 33 Hz, so higher modes are not resolvable from this instrument.",
             "credits": ["Raw ELF data: Salinas et al., Zenodo 10.5281/zenodo.6348930, CC BY 4.0; processing chain after Salinas et al. 2022, Computers & Geosciences 165:105148",
                         "Kp index: GFZ Potsdam, Matzka et al. 2021, CC BY 4.0", "Earthquakes: USGS FDSN event service"]}

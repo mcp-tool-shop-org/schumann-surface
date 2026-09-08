@@ -4,6 +4,19 @@ The `D` object that `scripts/build_viewer.py` embeds into `viewer/template.html`
 Station-agnostic: a second station only has to produce the same fields. `contract` bumps when a field
 changes meaning; adding fields does not bump it.
 
+## contract 4 (2026-09-08, later)
+
+Adds `year`: one row per calendar day across every processed month, so a single month page can carry
+the twelve-month picture. Contract 3 added `pol` (per-column polarisation) and `chimneys_month`.
+
+| Field | Type | Meaning |
+|---|---|---|
+| `year.days[]` | `{date, n, NS?, EW?, kp_max, kp_mean}` | per day: `n` slots that day; per sensor `f[3]` mean centre Hz, `a[3]` mean peak pT/√Hz, `amed[3]` median peak, of unmasked fits; `kp_max`/`kp_mean` from the GFZ 3-hourly values; −1 or null = no data |
+| `year.note` | str | what it is for and the known effect size to test against |
+| `pol` | `{az[nt][3], ell[nt][3], coh[nt][3], note}` | per column, per mode: axial polarisation angle (radians from NS towards EW), ellipticity, NS/EW coherence; −9 = no data |
+| `chimneys_month[]` | as `chimneys` plus `season` | seasonal centroids (position only; the UTC clock stays annual) |
+| `contract` | int | 4 |
+
 ## contract 2 (2026-09-08)
 
 | Field | Type | Meaning |
