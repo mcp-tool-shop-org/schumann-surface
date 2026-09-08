@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Schumann Surface</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap">
+<style>
+:root{--bg:#0b0e14;--panel:#141922;--ink:#e6e9ef;--mut:#8b93a5;--acc:#7dd3fc;--line:#26303f;color-scheme:dark}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:13px/1.5 "IBM Plex Sans",system-ui,Segoe UI,Roboto,sans-serif;overflow:hidden}
+.stat,#tip .mono{font-family:"IBM Plex Mono",ui-monospace,Consolas,monospace;font-variant-numeric:tabular-nums}
+#gl{position:absolute;inset:0}
+#side{position:absolute;top:0;right:0;width:340px;height:100%;overflow:auto;background:var(--panel);border-left:1px solid var(--line);padding:14px 16px;box-sizing:border-box}
+h1{font-size:16px;margin:0 0 2px}h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);margin:16px 0 6px}
+.sub{color:var(--mut);font-size:12px}
+label{display:flex;align-items:center;gap:6px;margin:3px 0;cursor:pointer}
+select,button{background:#1c2330;color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:3px 6px;font:inherit;max-width:100%}
+#tip{position:absolute;left:12px;top:12px;background:rgba(20,25,34,.92);border:1px solid var(--line);border-radius:6px;padding:8px 10px;pointer-events:none;min-width:220px}
+#tip b{color:var(--acc)}
+canvas.p{width:100%;height:120px;background:#0f131a;border:1px solid var(--line);border-radius:4px;display:block}
+#legend{display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--mut);margin-top:4px}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:-1px;margin-right:3px}
+p{margin:6px 0}
+.stat{font-family:ui-monospace,Consolas,monospace;font-size:12px;white-space:pre;color:var(--ink)}
+small{color:var(--mut)}
+</style></head><body>
+<div id="gl"></div>
+<div id="tip"><b>hover the surface</b><br><span class="sub">drag: rotate · wheel: zoom · right-drag: pan</span></div>
+<div id="side">
+ <h1>Schumann Surface</h1>
+ <div class="sub" id="station"></div>
+ <h2>What you are looking at</h2>
+ <p>Time runs left to right across one month. Frequency runs front to back. Height and colour are magnetic amplitude in dB re 1 pT/√Hz.</p>
+ <p>The ridges running the full length are the Schumann resonances: the Earth–ionosphere cavity ringing near 7.8, 14, 20, 26 and 33 Hz. Lightning drives them, so they breathe once a day as the big thunderstorm regions (Asia, then Africa, then the Americas) rotate under the sun.</p>
+ <p id="calnote" class="sub"></p>
+ <h2>Layers</h2>
+ <label><input type="checkbox" id="sheetNS" checked> NS sheet</label>
+ <label><input type="checkbox" id="sheetEW"> EW sheet (stacked above)</label>
+ <label><input type="checkbox" id="ribbons" checked> Mode ribbons (fitted centre frequency, modes 1–3)</label>
+ <label><input type="checkbox" id="laneKp" checked> Lane: Kp geomagnetic index (3-hourly)</label>
+ <label><input type="checkbox" id="laneNight" checked> Lane: local night at the station</label>
+ <label><input type="checkbox" id="laneQ" checked> Lane: earthquakes M6+ (USGS)</label>
+ <div id="legend">
+  <span><i class="sw" style="background:#3b82f6"></i>Kp &lt; 4</span><span><i class="sw" style="background:#f59e0b"></i>Kp 4–5</span><span><i class="sw" style="background:#ef4444"></i>Kp ≥ 5</span>
+  <span><i class="sw" style="background:#3730a3"></i>night</span><span><i class="sw" style="background:#f472b6"></i>quake</span>
+ </div>
+ <h2>Spectrum at cursor</h2>
+ <canvas class="p" id="slice"></canvas>
+ <h2>Correlation, with the null shown</h2>
+ <label>Surface series <select id="serA">
+   <option value="m1a">Mode 1 amplitude (NS)</option><option value="m1f">Mode 1 frequency (NS)</option>
+   <option value="m2a">Mode 2 amplitude (NS)</option><option value="m3a">Mode 3 amplitude (NS)</option>
+   <option value="b1">Band power 7–9 Hz (NS)</option><option value="b5">Band power 22–25 Hz (NS)</option></select></label>
+ <label>Event series <select id="serB">
+   <option value="kp">Kp index</option><option value="night">Night fraction</option><option value="quake">Earthquake count per bin</option><option value="quakeE">Earthquake energy per bin</option></select></label>
+ <canvas class="p" id="xcorr"></canvas>
+ <div class="stat" id="xstat"></div>
+ <p><small>Pearson r at each lag, ±24 h. The grey band is the 95 % null with an effective sample size corrected for autocorrelation in both series (Bartlett). A curve that stays inside the band is a null result, and that is a valid result.</small></p>
+ <h2>Credits</h2>
+ <div class="sub" id="credits"></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const D = /*__DATA__*/null;
+if(!D){document.body.innerHTML='<p style="padding:20px">No data embedded. Run scripts/build_viewer.py.</p>';throw new Error('no data');}
+document.getElementById('station').textContent = D.station + ' · ' + D.month;
+document.getElementById('credits').innerHTML = D.credits.map(c=>'<div>'+c+'</div>').join('');
+if(D.calnote)document.getElementById('calnote').textContent=D.calnote;
+const nt=D.nt, nf=D.nf, FMAX=D.f0+D.df*(nf-1);
+function dec(s){const b=atob(s.u8);const a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a;}
+const sheets={}; for(const s of D.sheets) sheets[s.name]={u8:dec(s),lo:s.lo,hi:s.hi};
+const dB=(sh,i,j)=>{const v=sh.u8[i*nf+j];return v?sh.lo+(v-1)/254*(sh.hi-sh.lo):NaN;};
+// ---------- scene ----------
+const W=()=>Math.max(1,innerWidth-340),H=()=>Math.max(1,innerHeight);
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(W(),H());document.getElementById('gl').appendChild(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x0b0e14);
+const cam=new THREE.PerspectiveCamera(45,W()/H(),1,20000);
+const SX=1600/nt, SZ=720/nf, SY=2.2;   // world units per column / per freq bin / per dB
+const X=i=>(i-nt/2)*SX, Z=j=>(j-nf/2)*SZ, Y=(sh,v)=>isNaN(v)?0:(v-sh.lo)*SY;
+scene.add(new THREE.AmbientLight(0xffffff,0.55));const dl=new THREE.DirectionalLight(0xffffff,0.8);dl.position.set(-600,900,400);scene.add(dl);
+function viridis(t){t=Math.max(0,Math.min(1,t));const c=[[68,1,84],[72,40,120],[62,74,137],[49,104,142],[38,130,142],[31,158,137],[53,183,121],[109,205,89],[180,222,44],[253,231,37]];const x=t*(c.length-1),i=Math.floor(x),u=x-i,a=c[i],b=c[Math.min(i+1,c.length-1)];return [a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u,a[2]+(b[2]-a[2])*u].map(v=>v/255);}
+function makeSheet(name,yoff){const sh=sheets[name];const g=new THREE.BufferGeometry();const pos=new Float32Array(nt*nf*3),col=new Float32Array(nt*nf*3);
+ for(let i=0;i<nt;i++)for(let j=0;j<nf;j++){const k=(i*nf+j)*3,v=dB(sh,i,j);pos[k]=X(i);pos[k+1]=Y(sh,v)+yoff;pos[k+2]=Z(j);const c=isNaN(v)?[.08,.09,.12]:viridis((v-sh.lo)/(sh.hi-sh.lo));col[k]=c[0];col[k+1]=c[1];col[k+2]=c[2];}
+ const idx=[];for(let i=0;i<nt-1;i++)for(let j=0;j<nf-1;j++){const a=i*nf+j,b=a+nf;idx.push(a,b,a+1,a+1,b,b+1);}
+ g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('color',new THREE.BufferAttribute(col,3));g.setIndex(idx);g.computeVertexNormals();
+ const m=new THREE.Mesh(g,new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide}));m.name=name;return m;}
+const meshNS=sheets.NS?makeSheet('NS',0):null; if(meshNS)scene.add(meshNS);
+const EWOFF=140; const meshEW=sheets.EW?makeSheet('EW',EWOFF):null; if(meshEW){meshEW.visible=false;scene.add(meshEW);}
+// ribbons
+const ribbonGroup=new THREE.Group();scene.add(ribbonGroup);
+const ribCol=[0xfca5a5,0xfdba74,0xfde68a];
+function addRibbons(name,yoff){const md=D.modes[name];if(!md)return;const sh=sheets[name];
+ for(let k=0;k<3;k++){const pts=[];for(let i=0;i<nt;i++){const f=md.f[i][k];if(f<0)continue;const j=Math.min(Math.round((f-D.f0)/D.df),nf-1);const v=dB(sh,i,j);if(isNaN(v))continue;pts.push(new THREE.Vector3(X(i),Y(sh,v)+yoff+2.5,Z((f-D.f0)/D.df)));}
+  if(pts.length<2)continue;const g=new THREE.BufferGeometry().setFromPoints(pts);ribbonGroup.add(new THREE.Line(g,new THREE.LineBasicMaterial({color:ribCol[k]})));}}
+if(sheets.NS)addRibbons('NS',0);
+// lanes (in front of the surface, at negative z)
+const laneKp=new THREE.Group(),laneNight=new THREE.Group(),laneQ=new THREE.Group();scene.add(laneKp,laneNight,laneQ);
+const zLane=Z(0)-26, tcol=t=>(t-D.t0)/D.dt;
+for(const [t,kp] of D.kp){const i0=tcol(t),i1=tcol(t+10800);if(i1<0||i0>nt)continue;const h=4+kp*10;
+ const b=new THREE.Mesh(new THREE.BoxGeometry((i1-i0)*SX*0.95,h,10),new THREE.MeshLambertMaterial({color:kp>=5?0xef4444:kp>=4?0xf59e0b:0x3b82f6}));b.position.set(X((i0+i1)/2),h/2,zLane);laneKp.add(b);}
+function sunElev(t,lat,lon){const d=t/86400-10957.5;const g=(357.529+0.98560028*d)*Math.PI/180,q=280.459+0.98564736*d;const L=(q+1.915*Math.sin(g)+0.02*Math.sin(2*g))*Math.PI/180;const e=(23.439-0.00000036*d)*Math.PI/180;const dec=Math.asin(Math.sin(e)*Math.sin(L));const RA=Math.atan2(Math.cos(e)*Math.sin(L),Math.cos(L));const GMST=(18.697374558+24.06570982441908*d)%24;const ha=((GMST*15+lon)*Math.PI/180-RA);const la=lat*Math.PI/180;return Math.asin(Math.sin(la)*Math.sin(dec)+Math.cos(la)*Math.cos(dec)*Math.cos(ha))*180/Math.PI;}
+const night=new Float32Array(nt);for(let i=0;i<nt;i++){let n=0;for(let s=0;s<6;s++)if(sunElev(D.t0+(i+s/6)*D.dt,D.lat,D.lon)<-6)n++;night[i]=n/6;}
+{let i=0;while(i<nt){if(night[i]>0.5){let j=i;while(j<nt&&night[j]>0.5)j++;const b=new THREE.Mesh(new THREE.BoxGeometry((j-i)*SX,3,10),new THREE.MeshBasicMaterial({color:0x3730a3}));b.position.set(X((i+j)/2),1.5,zLane-14);laneNight.add(b);i=j;}else i++;}}
+for(const [t,mag,place] of D.quakes){const i=tcol(t);if(i<0||i>nt)continue;const r=2+(mag-6)*4;const s=new THREE.Mesh(new THREE.SphereGeometry(r,12,12),new THREE.MeshLambertMaterial({color:0xf472b6}));s.position.set(X(i),r+2,zLane-30);s.userData.label='M'+mag+' '+place+' · '+new Date(t*1000).toISOString().slice(0,16).replace('T',' ')+' UTC';laneQ.add(s);}
+// axes + labels
+function label(txt,x,y,z,size){const c=document.createElement('canvas');c.width=256;c.height=64;const g=c.getContext('2d');g.font='28px system-ui';g.fillStyle='#c7cdd9';g.textAlign='center';g.fillText(txt,128,42);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true}));sp.position.set(x,y,z);sp.scale.set(size*4,size,1);scene.add(sp);}
+for(let f=Math.ceil(D.f0/5)*5;f<=FMAX;f+=5){const j=(f-D.f0)/D.df;label(f+' Hz',X(-30),0,Z(j),22);scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(X(0),0,Z(j)),new THREE.Vector3(X(nt),0,Z(j))]),new THREE.LineBasicMaterial({color:0x26303f})));}
+{const d0=new Date(D.t0*1000);for(let day=1;day<=31;day+=3){const t=Date.UTC(d0.getUTCFullYear(),d0.getUTCMonth(),day)/1000;const i=tcol(t);if(i<0||i>nt)continue;label(D.month+'-'+String(day).padStart(2,'0'),X(i),0,Z(nf)+40,22);}}
+label('time (UTC) →',X(nt/2),0,Z(nf)+80,26);label('lanes: Kp · night · quakes',X(nt/2),0,zLane-60,22);
+// camera control (minimal orbit)
+let theta=-0.9,phi=0.95,dist=1900;const target=new THREE.Vector3(0,40,0);
+function place(){cam.position.set(target.x+dist*Math.sin(phi)*Math.sin(theta),target.y+dist*Math.cos(phi),target.z+dist*Math.sin(phi)*Math.cos(theta));cam.lookAt(target);}
+place();const el=renderer.domElement;let drag=null;
+el.addEventListener('mousedown',e=>{drag={x:e.clientX,y:e.clientY,b:e.button};});addEventListener('mouseup',()=>drag=null);el.addEventListener('contextmenu',e=>e.preventDefault());
+el.addEventListener('mousemove',e=>{if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.x=e.clientX;drag.y=e.clientY;if(drag.b===0){theta-=dx*0.005;phi=Math.max(0.05,Math.min(1.5,phi-dy*0.005));}else{const r=new THREE.Vector3().setFromMatrixColumn(cam.matrix,0),u=new THREE.Vector3().setFromMatrixColumn(cam.matrix,1);target.add(r.multiplyScalar(-dx*dist*0.0012)).add(u.multiplyScalar(dy*dist*0.0012));}place();}else hover(e);});
+el.addEventListener('wheel',e=>{e.preventDefault();dist=Math.max(200,Math.min(8000,dist*(1+e.deltaY*0.001)));place();},{passive:false});
+addEventListener('resize',()=>{renderer.setSize(W(),H());cam.aspect=W()/H();cam.updateProjectionMatrix();});
+// hover -> tooltip + slice
+const ray=new THREE.Raycaster(),mouse=new THREE.Vector2(),tip=document.getElementById('tip');
+const fmtT=t=>new Date(t*1000).toISOString().slice(0,16).replace('T',' ')+' UTC';
+function kpAt(t){for(const [a,k] of D.kp){if(t>=a&&t<a+10800)return k;}return 0;}
+function hover(e){mouse.x=e.clientX/W()*2-1;mouse.y=-(e.clientY/H())*2+1;ray.setFromCamera(mouse,cam);
+ const targets=[meshNS,meshEW].filter(m=>m&&m.visible).concat(laneQ.children);const hit=ray.intersectObjects(targets)[0];if(!hit)return;
+ if(hit.object.userData.label){tip.innerHTML='<b>'+hit.object.userData.label+'</b>';return;}
+ const sh=sheets[hit.object.name];const i=Math.round(hit.point.x/SX+nt/2),j=Math.round(hit.point.z/SZ+nf/2);if(i<0||i>=nt||j<0||j>=nf)return;
+ const v=dB(sh,i,j),md=D.modes[hit.object.name],mf=md?md.f[i]:null;
+ tip.innerHTML='<b>'+hit.object.name+'</b> '+fmtT(D.t0+i*D.dt)+'<br>'+(D.f0+j*D.df).toFixed(2)+' Hz · '+(isNaN(v)?'no data':v.toFixed(1)+' dB')+(mf&&mf[0]>0?'<br>modes: '+mf.map(x=>x.toFixed(2)).join(' / ')+' Hz':'')+'<br><span class="sub">night '+Math.round(night[i]*100)+'% · Kp '+kpAt(D.t0+i*D.dt).toFixed(1)+'</span>';
+ drawSlice(sh,i,mf);}
+function drawSlice(sh,i,mf){const c=document.getElementById('slice'),g=c.getContext('2d');c.width=c.clientWidth*2;c.height=240;g.clearRect(0,0,c.width,c.height);g.strokeStyle='#7dd3fc';g.lineWidth=2;g.beginPath();
+ for(let j=0;j<nf;j++){const v=dB(sh,i,j);const x=j/nf*c.width,y=c.height-(isNaN(v)?0:(v-sh.lo)/(sh.hi-sh.lo))*c.height*0.9-10;j?g.lineTo(x,y):g.moveTo(x,y);}g.stroke();
+ g.fillStyle='#8b93a5';g.font='20px "IBM Plex Mono",monospace';for(let f=Math.ceil(D.f0/5)*5;f<=FMAX;f+=5){g.fillText(f+' Hz',(f-D.f0)/(FMAX-D.f0)*c.width+2,c.height-2);}
+ if(mf)for(let k=0;k<3;k++)if(mf[k]>0){g.strokeStyle='#'+ribCol[k].toString(16).padStart(6,'0');g.lineWidth=1;const x=(mf[k]-D.f0)/D.df/nf*c.width;g.beginPath();g.moveTo(x,0);g.lineTo(x,c.height);g.stroke();}}
+// toggles
+const q=id=>document.getElementById(id);
+q('sheetNS').onchange=e=>{if(meshNS)meshNS.visible=e.target.checked;};q('sheetEW').onchange=e=>{if(meshEW)meshEW.visible=e.target.checked;};
+q('ribbons').onchange=e=>ribbonGroup.visible=e.target.checked;q('laneKp').onchange=e=>laneKp.visible=e.target.checked;q('laneNight').onchange=e=>laneNight.visible=e.target.checked;q('laneQ').onchange=e=>laneQ.visible=e.target.checked;
+// ---------- correlation ----------
+function series(id){const md=D.modes.NS,sh=sheets.NS,a=new Float64Array(nt);
+ for(let i=0;i<nt;i++){let v=NaN;
+  if(id==='m1a')v=md.a[i][0]>0?md.a[i][0]:NaN;else if(id==='m2a')v=md.a[i][1]>0?md.a[i][1]:NaN;else if(id==='m3a')v=md.a[i][2]>0?md.a[i][2]:NaN;else if(id==='m1f')v=md.f[i][0]>0?md.f[i][0]:NaN;
+  else if(id==='b1'||id==='b5'){const [lo,hi]=id==='b1'?[7,9]:[22,25];let s=0,n=0;for(let j=Math.max(0,Math.round((lo-D.f0)/D.df));j<=Math.min(Math.round((hi-D.f0)/D.df),nf-1);j++){const d=dB(sh,i,j);if(!isNaN(d)){s+=d;n++;}}v=n?s/n:NaN;}
+  else if(id==='kp')v=kpAt(D.t0+i*D.dt);else if(id==='night')v=night[i];
+  else if(id==='quake'||id==='quakeE'){v=0;for(const [t,m] of D.quakes){const c=tcol(t);if(c>=i&&c<i+1)v+=id==='quake'?1:Math.pow(10,1.5*(m-6));}}
+  a[i]=v;}return a;}
+function ac1(a){let sx=0,n=0;for(const v of a)if(!isNaN(v)){sx+=v;n++;}const m=sx/n;let num=0,den=0;for(let i=0;i<a.length-1;i++){if(isNaN(a[i])||isNaN(a[i+1]))continue;num+=(a[i]-m)*(a[i+1]-m);}for(const v of a)if(!isNaN(v))den+=(v-m)*(v-m);return den?num/den:0;}
+function xcorr(a,b,maxlag){const out=[];const r1=ac1(a),r2=ac1(b);
+ for(let L=-maxlag;L<=maxlag;L++){let sa=0,sb=0,n=0;const xs=[],ys=[];for(let i=0;i<nt;i++){const j=i+L;if(j<0||j>=nt)continue;const x=a[i],y=b[j];if(isNaN(x)||isNaN(y))continue;xs.push(x);ys.push(y);sa+=x;sb+=y;n++;}
+  if(n<20){out.push({L,r:NaN,n});continue;}const ma=sa/n,mb=sb/n;let sxy=0,sxx=0,syy=0;for(let k=0;k<n;k++){const dx=xs[k]-ma,dy=ys[k]-mb;sxy+=dx*dy;sxx+=dx*dx;syy+=dy*dy;}
+  out.push({L,r:(sxx&&syy)?sxy/Math.sqrt(sxx*syy):NaN,n});}
+ const n=out[maxlag].n,neff=Math.max(5,n*(1-r1*r2)/(1+r1*r2));return {out,neff,r1,r2};}
+function drawX(){const A=series(q('serA').value),B=series(q('serB').value);const maxlag=Math.round(86400/D.dt);const {out,neff}=xcorr(A,B,maxlag);
+ const c=document.getElementById('xcorr'),g=c.getContext('2d');c.width=c.clientWidth*2;c.height=240;g.clearRect(0,0,c.width,c.height);const y0=c.height/2,sy=c.height*0.45,band=1.96/Math.sqrt(neff);
+ g.fillStyle='rgba(139,147,165,.25)';g.fillRect(0,y0-band*sy,c.width,2*band*sy);g.strokeStyle='#26303f';g.beginPath();g.moveTo(0,y0);g.lineTo(c.width,y0);g.moveTo(c.width/2,0);g.lineTo(c.width/2,c.height);g.stroke();
+ g.strokeStyle='#fde68a';g.lineWidth=2;g.beginPath();let best={r:0,L:0};let started=false;out.forEach((o,k)=>{if(isNaN(o.r))return;const x=k/(out.length-1)*c.width,y=y0-o.r*sy;started?g.lineTo(x,y):g.moveTo(x,y);started=true;if(Math.abs(o.r)>Math.abs(best.r))best=o;});g.stroke();
+ g.fillStyle='#8b93a5';g.font='20px system-ui';g.fillText('-24h',4,c.height-4);g.fillText('lag 0',c.width/2+4,c.height-4);g.fillText('+24h',c.width-52,c.height-4);g.fillText('r=+1',4,20);g.fillText('r=-1',4,c.height-24);
+ const r0=out[maxlag].r;const verdict=Math.abs(best.r)>band?'peak OUTSIDE the null band':'stays inside the null band (null result)';
+ q('xstat').textContent=`r(lag 0) = ${isNaN(r0)?'n/a':r0.toFixed(3)}   max |r| = ${best.r.toFixed(3)} at ${(best.L*D.dt/3600).toFixed(1)} h\nN = ${out[maxlag].n}  N_eff = ${neff.toFixed(0)}  95% band = ±${band.toFixed(3)}\n${verdict}\n(positive lag: event series leads)`;}
+q('serA').onchange=drawX;q('serB').onchange=drawX;drawX();
+// page at rest: show the strongest geomagnetic interval of the month if one is flagged, else mid-month
+{const t=D.storm_t||(D.t0+nt/2*D.dt);const i=Math.max(0,Math.min(nt-1,Math.round(tcol(t))));const sh=sheets.NS;const md=D.modes.NS;const mf=md?md.f[i]:null;
+ tip.innerHTML='<b>NS</b> <span class="mono">'+fmtT(D.t0+i*D.dt)+'</span>'+(D.storm_t?'<br>Kp '+kpAt(D.t0+i*D.dt).toFixed(1)+' — the month\'s strongest geomagnetic interval':'')+(mf&&mf[0]>0?'<br>modes: <span class="mono">'+mf.map(x=>x.toFixed(2)).join(' / ')+'</span> Hz':'')+'<br><span class="sub">drag: rotate · wheel: zoom · right-drag: pan · hover for detail</span>';
+ drawSlice(sh,i,mf);}
+(function loop(){requestAnimationFrame(loop);renderer.render(scene,cam);})();
+</script></body></html>
