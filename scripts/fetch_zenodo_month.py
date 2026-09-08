@@ -113,7 +113,10 @@ def main(month):
             assert len(data) == usz, (name, len(data), usz)
             with open(os.path.join(outdir, os.path.basename(name)), "wb") as o:
                 o.write(data)
-    os.remove(span)
+    try:
+        os.remove(span)
+    except OSError as e:
+        print(f"note: could not remove {span} ({e}); delete it by hand")
     print(f"extracted {len(m)} files to {outdir}")
 
 
