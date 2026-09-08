@@ -4,12 +4,13 @@
     python analyst.py --route-only "What was the mean mode-1 frequency in June 2013?"
     python analyst.py --serve 8770           # tiny local HTTP: POST /ask {"question": "..."}
 
-Routing (router.py, deterministic): a question naming a specific month of the archive goes to the
-adapter alone (it memorised the per-month statistics; 0.944 on held-out data questions); everything
-else goes to the adapter with the knowledge base in context (0.525 on knowledge-base paraphrases,
-best measured). Routed accuracy on the held-out set: 0.625, against 0.573 for the best single
-condition. `--else base` switches the second route to the plain base model with context, which
-measured better on facts the corpus never contained (0.60 vs 0.25 unseen) but worse overall.
+Routing (router.py, deterministic): a question that names a month of the archive AND asks for a
+statistic goes to the adapter alone (it memorised the per-month statistics; 0.944 on held-out data
+questions); everything else goes to the BASE model with the knowledge base in context, which reads
+the material literally (0.60 on facts the corpus never contained) instead of inventing plausible
+numbers. Routed held-out accuracy: 0.635, against 0.573 for the best single condition. `--else adapter`
+puts the adapter on the context route too: 0.646 overall on this set but 0.35 on unseen facts, with
+confabulation to match.
 
 Every answer is returned with its route and the model that produced it, so a reader can see which
 regime they are in. The adapter is a convenience; the Parquet tables are the record.
@@ -33,7 +34,7 @@ ADAPTER_ID = "mcp-tool-shop/schumann-analyst-qwen2.5-3b-lora"
 
 
 class Analyst:
-    def __init__(self, adapter=None, else_route="adapter", context_path=None, max_new_tokens=160):
+    def __init__(self, adapter=None, else_route="base", context_path=None, max_new_tokens=160):
         import torch
         from transformers import AutoModelForCausalLM, AutoTokenizer
         from peft import PeftModel
@@ -89,7 +90,7 @@ def serve(analyst, port):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("question", nargs="?"); ap.add_argument("--route-only", action="store_true")
-    ap.add_argument("--else", dest="else_route", choices=["adapter", "base"], default="adapter", help="model for the non-month route")
+    ap.add_argument("--else", dest="else_route", choices=["base", "adapter"], default="base", help="model for the non-month route")
     ap.add_argument("--adapter", default=None); ap.add_argument("--serve", type=int, default=None)
     a = ap.parse_args()
     if a.route_only:

@@ -120,10 +120,11 @@ Scored 0–3 against the studio's six workflow standards.
 ## The analyst
 
 A Qwen2.5-3B LoRA that knows this dataset, with a deterministic router in front
-(`experiments/schumann-sft/analyst.py`). Questions naming a month go to the adapter alone, which
-memorised the per-month statistics; everything else goes to the adapter with the knowledge base in
-context. Routed held-out accuracy is 0.625 against 0.573 for the best single condition, 0.354 for the
-base model with the knowledge base in context, and 0.031 for the base model alone. The model card on
+(`experiments/schumann-sft/analyst.py`). A question that names a month and asks for a statistic goes
+to the adapter alone, which memorised the per-month numbers; everything else goes to the base model
+with the knowledge base in context, which reads the material instead of inventing it. Routed held-out
+accuracy is 0.635 against 0.573 for the best single condition, 0.354 for the base model with the
+knowledge base in context, and 0.031 for the base model alone. The model card on
 [Hugging Face](https://huggingface.co/mcp-tool-shop/schumann-analyst-qwen2.5-3b-lora) carries every
 condition. Run it on a CUDA machine:
 

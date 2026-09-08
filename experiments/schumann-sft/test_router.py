@@ -21,5 +21,11 @@ def test_knowledge_base_questions_go_to_context():
         assert route(q) == "context", q
 
 
+def test_month_without_a_statistic_is_a_kb_question():
+    for q in ("How many 10-minute slots does October 2013 have per sensor?",
+              "Which paper covers the March 2013 recordings?"):
+        assert route(q) == "context", q
+
+
 def test_kb_dated_facts_stay_in_context():
     assert route("When did the Kp 7.7 storm happen, 2013-10-02?") == "context"

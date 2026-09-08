@@ -4,10 +4,13 @@ Measured on the held-out set (runs/run2-30ep): the adapter alone is far better o
 (0.944 vs 0.167 with context) because those numbers are not in the knowledge-base text; with the
 knowledge base in context, a model is better on everything else. So:
 
-    route(question) -> "adapter"  : the question names a specific month of the archive -> adapter, no context
+    route(question) -> "adapter"  : names a specific month of the archive AND asks for a statistic -> adapter, no context
                     -> "context"  : anything else -> model with the knowledge base in context
 
-The month rule is the whole router. It is a regular expression, not a model, so it cannot drift and
+A month alone is not enough: "how many slots does October 2013 have" is a knowledge-base fact, not a
+statistic, and the adapter alone invents an answer to it. Requiring a statistic word beside the month
+moved held-out accuracy from 0.594 to 0.635 with the base model on the context route (unseen 0.40 -> 0.60).
+Two rules are the whole router. It is a regular expression, not a model, so it cannot drift and
 its decisions are inspectable. `evaluate()` scores the routed system from saved predictions.
 """
 import re
@@ -18,13 +21,16 @@ _MONTH_YEAR = re.compile(rf"\b({MONTHS})\.?\s+(2013|2017)\b", re.I)
 _YEAR_MONTH = re.compile(rf"\b(2013|2017)\s+({MONTHS})\b", re.I)
 # Named-date facts that the knowledge base itself states (storm dates); those are KB facts, not statistics.
 _KB_DATE = re.compile(r"\b(2013-10-02|2013-06-01)\b")
+# A month is a statistics question only when it asks for one of these.
+_STAT = re.compile(r"\b(mean|average|centre frequenc|center frequenc|frequencies|peak|amplitude|highest|lowest|strongest|weakest|maximum|max|hour|kp|diurnal|how high)", re.I)
 
 
 def route(question: str) -> str:
     q = question.strip()
     if _KB_DATE.search(q):
         return "context"
-    if _YM.search(q) or _MONTH_YEAR.search(q) or _YEAR_MONTH.search(q):
+    names_month = bool(_YM.search(q) or _MONTH_YEAR.search(q) or _YEAR_MONTH.search(q))
+    if names_month and _STAT.search(q):
         return "adapter"
     return "context"
 
