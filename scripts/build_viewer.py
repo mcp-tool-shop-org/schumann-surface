@@ -63,23 +63,69 @@ def main(month):
         kp.append([ts, float(c[7])])
     g = json.load(open(os.path.join(ROOT, "data", "lanes", f"usgs_{yyyymm}_m6.geojson")))
     quakes = [[q["properties"]["time"] / 1000, q["properties"]["mag"], q["properties"]["place"]] for q in g["features"]]
+    # Chimney schedule: a MODEL lane, not measured lightning. Structure after Whipple 1929 (thunderstorm
+    # diurnal curves by continent) and the Carnegie curve (Harrison 2013, Surv. Geophys.); UTC peaks and
+    # relative weights consistent with the LIS/OTD diurnal climatology (Blakeslee et al. 2014, Atmos. Res.).
+    # Measured 2013 global lightning (WWLLN, Blitzortung archive, LIS via Earthdata) needs an account.
+    chimneys = [{"name": "Southeast Asia / Maritime Continent", "peak_utc": 8.0, "sigma_h": 2.5, "weight": 0.8, "lat": 5, "lon": 110},
+                {"name": "Africa", "peak_utc": 14.5, "sigma_h": 2.5, "weight": 1.0, "lat": 5, "lon": 20},
+                {"name": "Americas", "peak_utc": 20.0, "sigma_h": 2.5, "weight": 0.9, "lat": 0, "lon": -60}]
+    def chimney_model(t):
+        h = (t % 86400) / 3600.0
+        v = 0.0
+        for c in chimneys:
+            d = min(abs(h - c["peak_utc"]), 24 - abs(h - c["peak_utc"]))
+            v += c["weight"] * np.exp(-0.5 * (d / c["sigma_h"]) ** 2)
+        return v
+    chimney = [round(float(chimney_model(t0 + i * dts)), 4) for i in range(nt)]
+    # Seasonal centroids (position only; the UTC clock stays annual). Approximate, read from the OTD/LIS
+    # climatology maps (Christian et al. 2003, JGR) and the monthly lightning-centre migration in
+    # Peterson, Mach & Buechler 2021 (JGR): SON pulls the Maritime Continent and the Americas south of
+    # the equator while Africa stays near it; JJA sits north of the equator on all three.
+    season_centroids = {"JJA": [(8, 105), (8, 15), (12, -75)], "SON": [(-4, 105), (-2, 25), (-12, -63)],
+                        "DJF": [(-10, 120), (-10, 25), (-15, -60)], "MAM": [(2, 105), (0, 20), (-5, -65)]}
+    season = {12: "DJF", 1: "DJF", 2: "DJF", 3: "MAM", 4: "MAM", 5: "MAM", 6: "JJA", 7: "JJA", 8: "JJA", 9: "SON", 10: "SON", 11: "SON"}[int(yyyymm[4:])]
+    chimneys_month = [dict(c, lat=la, lon=lo, season=season) for c, (la, lo) in zip(chimneys, season_centroids[season])]
+    # Polarisation per column per mode from the NS x EW cross-spectrum (scripts/polarisation_month.py)
+    pol = None
+    pp = os.path.join(ROOT, "data", "derived", f"POL_{month}.npz")
+    if os.path.exists(pp):
+        z = np.load(pp)
+        def circ_mean(a):  # mean of an axial (180-degree periodic) angle over the column
+            with np.errstate(all="ignore"):
+                return 0.5 * np.arctan2(np.nanmean(np.sin(2 * a), axis=1), np.nanmean(np.cos(2 * a), axis=1))
+        n = (len(z["t"]) // TSTEP) * TSTEP
+        az = z["az"][:n].reshape(-1, TSTEP, 3); ell = z["ell"][:n].reshape(-1, TSTEP, 3); coh = z["coh"][:n].reshape(-1, TSTEP, 3)
+        pol = {"az": np.round(np.nan_to_num(np.stack([circ_mean(az[:, :, k]) for k in range(3)], 1), nan=-9), 4).tolist(),
+               "ell": np.round(np.nan_to_num(np.nanmean(ell, 1), nan=-9), 3).tolist(),
+               "coh": np.round(np.nan_to_num(np.nanmean(coh, 1), nan=-9), 3).tolist(),
+               "note": "az: axial angle of the horizontal magnetic polarisation, radians from the NS coil towards EW, in (-pi/2, pi/2]; -9 = no data. Source bearing ~ az + pi/2, two-fold ambiguous. ell in [-1,1]; coh = NS/EW magnitude-squared coherence."}
+    # Measured diurnal summary: per-UTC-hour mean of each mode's peak amplitude, both sheets.
+    diurnal = {}
+    for name in modes:
+        a = np.array(modes[name]["a"], dtype=float); a[a < 0] = np.nan
+        hours = ((t0 + np.arange(nt) * dts) % 86400) // 3600
+        with np.errstate(all="ignore"):
+            diurnal[name] = [[round(float(np.nanmean(a[hours == h, k])), 4) for k in range(3)] for h in range(24)]
     data = {"station": "Sierra Nevada ELF station, Spain (37.04 N, 3.32 W, 2500 m)", "lat": 37.04, "lon": -3.32,
             "month": f"{yyyymm[:4]}-{yyyymm[4:]}", "t0": t0, "dt": dts, "nt": nt, "f0": FMIN, "df": float(f[1] - f[0]) * FBIN, "nf": nfo,
             "storm_t": dt.datetime(2013, 10, 2, 3, tzinfo=dt.timezone.utc).timestamp() if month == "1310" else None,
             "sheets": sheets, "modes": modes, "kp": kp, "quakes": quakes,
+            "chimneys": chimneys, "chimneys_month": chimneys_month, "chimney": chimney, "diurnal": diurnal, "pol": pol, "contract": 3,
             "calnote": "The surface covers 6 to 25 Hz, the band the station calibrates (modes 1 to 3). Below 6 Hz the sensor's 1/f noise dominates and the coil resonates near 33 Hz, so higher modes are not resolvable from this instrument.",
             "credits": ["Raw ELF data: Salinas et al., Zenodo 10.5281/zenodo.6348930, CC BY 4.0; processing chain after Salinas et al. 2022, Computers & Geosciences 165:105148",
                         "Kp index: GFZ Potsdam, Matzka et al. 2021, CC BY 4.0", "Earthquakes: USGS FDSN event service"]}
     tpl = open(os.path.join(ROOT, "viewer", "template.html"), encoding="utf8").read()
     out = tpl.replace("/*__DATA__*/null", json.dumps(data, separators=(",", ":")))
-    op = os.path.join(ROOT, "viewer", "index.html")
+    main_page = "--main" in sys.argv
+    op = os.path.join(ROOT, "viewer", "index.html" if main_page else f"SN_{yyyymm}.html")
     open(op, "w", encoding="utf8").write(out)
     # Artifact variant: same page without the document skeleton (the host supplies doctype/html/head/body)
     body = out
     for tag in ("<!doctype html>", "<html lang=\"en\">", "<head>", "</head>", "<body>", "</body>", "</html>"):
         body = body.replace(tag, "")
     body = body.replace('<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">', "")
-    open(os.path.join(ROOT, "viewer", "artifact.html"), "w", encoding="utf8").write(body.strip() + "\n")
+    open(os.path.join(ROOT, "viewer", "artifact.html" if main_page else f"artifact_{yyyymm}.html"), "w", encoding="utf8").write(body.strip() + "\n")
     print(f"wrote {op} {os.path.getsize(op)/1e6:.1f} MB; nt={nt} nf={nfo} sheets={[s['name'] for s in sheets]} dt={dts:.0f}s")
 
 

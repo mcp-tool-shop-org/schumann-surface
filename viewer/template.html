@@ -84,7 +84,7 @@ small{color:var(--mut)}
    <option value="m2a">Mode 2 amplitude (NS)</option><option value="m3a">Mode 3 amplitude (NS)</option>
    <option value="b1">Band power 7–9 Hz (NS)</option><option value="b5">Band power 22–25 Hz (NS)</option></select></label>
  <label>Event series <select id="serB">
-   <option value="kp">Kp index</option><option value="night">Night fraction</option><option value="quake">Earthquake count per bin</option><option value="quakeE">Earthquake energy per bin</option></select></label>
+   <option value="kp">Kp index</option><option value="night">Night fraction</option><option value="quake">Earthquake count per bin</option><option value="quakeE">Earthquake energy per bin</option><option value="chimney">Chimney schedule (model, not measured)</option></select></label>
  <canvas class="p" id="xcorr"></canvas>
  <div class="stat" id="xstat"></div>
  <p><small>Pearson r at each lag, ±24 h. The grey band is the 95 % null with an effective sample size corrected for autocorrelation in both series (Bartlett). A curve that stays inside the band is a null result, and that is a valid result.</small></p>
@@ -419,7 +419,7 @@ function series(id){const md=D.modes.NS,sh=sheets.NS,a=new Float64Array(nt);
  for(let i=0;i<nt;i++){let v=NaN;
   if(id==='m1a')v=md.a[i][0]>0?md.a[i][0]:NaN;else if(id==='m2a')v=md.a[i][1]>0?md.a[i][1]:NaN;else if(id==='m3a')v=md.a[i][2]>0?md.a[i][2]:NaN;else if(id==='m1f')v=md.f[i][0]>0?md.f[i][0]:NaN;
   else if(id==='b1'||id==='b5'){const [lo,hi]=id==='b1'?[7,9]:[22,25];let s=0,n=0;for(let j=Math.max(0,Math.round((lo-D.f0)/D.df));j<=Math.min(Math.round((hi-D.f0)/D.df),nf-1);j++){const d=dB(sh,i,j);if(!isNaN(d)){s+=d;n++;}}v=n?s/n:NaN;}
-  else if(id==='kp')v=kpAt(D.t0+i*D.dt);else if(id==='night')v=night[i];
+  else if(id==='kp')v=kpAt(D.t0+i*D.dt);else if(id==='night')v=night[i];else if(id==='chimney')v=D.chimney?D.chimney[i]:NaN;
   else if(id==='quake'||id==='quakeE'){v=0;for(const [t,m] of D.quakes){const c=tcol(t);if(c>=i&&c<i+1)v+=id==='quake'?1:Math.pow(10,1.5*(m-6));}}
   a[i]=v;}return a;}
 function ac1(a){let sx=0,n=0;for(const v of a)if(!isNaN(v)){sx+=v;n++;}const m=sx/n;let num=0,den=0;for(let i=0;i<a.length-1;i++){if(isNaN(a[i])||isNaN(a[i+1]))continue;num+=(a[i]-m)*(a[i+1]-m);}for(const v of a)if(!isNaN(v))den+=(v-m)*(v-m);return den?num/den:0;}

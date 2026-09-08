@@ -41,6 +41,20 @@ The residual frequency scatter is the two Levenberg–Marquardt implementations 
 SciPy here) landing on different local minima for a few percent of slots; the viewer masks fits that
 leave the documented per-mode windows.
 
+The verifier is a gate: it exits non-zero unless ≥ 95 % of slots match within 30 s, the spectrum
+ratio's 5th and 95th percentiles sit within 1 ± 0.005, every mode's median frequency difference is
+under 0.02 Hz, and the saturation series correlate above 0.99.
+
+## Lightning lane: model, not measurement
+
+No openly downloadable measured global lightning series exists for 2013 (WWLLN is subscription, the
+Blitzortung archive needs a participant login, NASA's LIS/OTD climatology sits behind Earthdata).
+The viewer therefore carries a **chimney schedule** as a model lane: three Gaussians in UTC hour for
+Southeast Asia, Africa and the Americas, after Whipple 1929, the Carnegie curve (Harrison 2013) and
+the LIS/OTD diurnal climatology (Blakeslee et al. 2014). It is labelled as a model wherever shown.
+The measured counterpart is also embedded: the per-UTC-hour mean of each mode's amplitude over the
+month. See `docs/data-contract.md`.
+
 ## Data and licences
 
 | Source | What | Licence | Use here |

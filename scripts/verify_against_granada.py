@@ -36,7 +36,20 @@ def main(month, s):
         print(f"{name}: f ours-granada median {np.nanmedian(df_):+.4f} Hz, p5/p95 {np.nanpercentile(df_[fin],5):+.3f}/{np.nanpercentile(df_[fin],95):+.3f}, "
               f"|d|<0.05 Hz in {np.mean(np.abs(df_[fin])<0.05)*100:.1f}% | peak ratio median {np.nanmedian(dpk):.4f} | width ratio median {np.nanmedian(ds):.4f}")
     print(f"granada mean f: {P[:,6:9].mean(0).round(3)}  ours: {np.nanmean(ours[:,:,0],0).round(3)}")
-    sat = m["sat"][mi]; print(f"saturation ours mean {sat.mean():.4f} granada {g['arr_0'][gi].mean():.4f}, corr {np.corrcoef(sat, g['arr_0'][gi])[0,1]:.3f}")
+    sat = m["sat"][mi]; satcorr = np.corrcoef(sat, g['arr_0'][gi])[0, 1]
+    print(f"saturation ours mean {sat.mean():.4f} granada {g['arr_0'][gi].mean():.4f}, corr {satcorr:.3f}")
+    # Andon gate: stated tolerances. Spectrum must agree to 0.5 % at p5/p95; at least 95 % of slots
+    # must match within 30 s; each mode's median frequency difference must be under 0.02 Hz.
+    fails = []
+    if ok.mean() < 0.95: fails.append(f"slot matching {ok.mean()*100:.1f}% < 95%")
+    if abs(np.nanpercentile(ratio, 5) - 1) > 0.005 or abs(np.nanpercentile(ratio, 95) - 1) > 0.005: fails.append("spectrum ratio p5/p95 outside 1 +- 0.005")
+    for k in range(3):
+        d = np.nanmedian(ours[:, k, 0] - P[:, 6 + k])
+        if abs(d) > 0.02: fails.append(f"mode{k+1} median df {d:+.4f} Hz > 0.02")
+    if satcorr < 0.99: fails.append(f"saturation corr {satcorr:.3f} < 0.99")
+    if fails:
+        print("VERIFY FAIL:", "; ".join(fails)); sys.exit(2)
+    print("VERIFY PASS")
 
 
 if __name__ == "__main__":
