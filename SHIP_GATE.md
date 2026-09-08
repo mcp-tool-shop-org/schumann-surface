@@ -59,10 +59,10 @@ Repo shape: Python data pipeline (scripts run by an operator) + a static HTML vi
 
 ## E. Identity (soft gate — does not block ship)
 
-- [ ] `[all]` Logo in README header
-- [ ] `[all]` Translations (polyglot-mcp, 8 languages)
-- [ ] `[org]` Landing page (@mcptoolshop/site-theme)
-- [ ] `[all]` GitHub repo metadata: description, homepage, topics
+- [x] `[all]` Logo in README header — brand/logos/schumann-surface/readme.png (2026-09-08)
+- [x] `[all]` Translations (polyglot-mcp, 8 languages) — TranslateGemma 27B local, 7 languages + nav bar (2026-09-08)
+- [x] `[org]` Landing page (@mcptoolshop/site-theme) — site/ with Starlight handbook, viewer served under /viewer/ (2026-09-08)
+- [x] `[all]` GitHub repo metadata: description, homepage, topics (2026-09-08)
 
 ---
 

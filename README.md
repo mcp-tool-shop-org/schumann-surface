@@ -1,4 +1,8 @@
 <p align="center">
+  <a href="README.md">English</a> | <a href="README.ja.md">日本語</a> | <a href="README.zh.md">中文</a> | <a href="README.es.md">Español</a> | <a href="README.fr.md">Français</a> | <a href="README.hi.md">हिन्दी</a> | <a href="README.it.md">Italiano</a> | <a href="README.pt-BR.md">Português (BR)</a>
+</p>
+
+<p align="center">
   <img src="https://raw.githubusercontent.com/mcp-tool-shop-org/brand/main/logos/schumann-surface/readme.png" alt="Schumann Surface" width="400">
 </p>
 
@@ -112,7 +116,7 @@ Scored 0–3 against the studio's six workflow standards.
 | UNCERTAINTY_GATED_HUMANS | 1 | The correlation panel shows the null band, which is the uncertainty gate for the viewer. No human checkpoint in the pipeline itself. Remediation: make the verifier emit pass/fail against a stated tolerance (owner: next session). |
 | EXTERNAL_VERIFIER | 3 | The verifier is the station's own independently produced output (different code, different authors, lmfit vs SciPy). Numbers in the table above. |
 
-## Trust and data
+## Trust and threat model
 
 The pipeline runs locally from a checkout. It reads and writes only under `data/` and `viewer/`.
 Network access happens only when you ask a script to fetch: Zenodo (raw archive), Digibug (the
