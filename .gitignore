@@ -7,3 +7,4 @@ dist/
 out/
 *.npz
 *.bin
+data/hf_staging/
