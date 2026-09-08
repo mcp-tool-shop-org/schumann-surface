@@ -12,6 +12,7 @@ examples are plain question/answer turns under one system prompt.
 from __future__ import annotations
 import argparse, hashlib, json, math, time
 from pathlib import Path
+SAVE_EVERY, TOTAL_EPOCHS = 1, 1
 
 
 def render_with_spans(tokenizer, messages):
@@ -110,9 +111,11 @@ def main():
         def __init__(self, out_dir, tok): self.out_dir, self.tok, self.saved = out_dir, tok, []
         def on_epoch_end(self, a, state, control, model=None, **kw):
             ep = int(round(state.epoch or 0))
-            if ep and ep not in self.saved:
+            if ep and ep not in self.saved and (ep % SAVE_EVERY == 0 or ep == TOTAL_EPOCHS):
                 p = self.out_dir / f"epoch{ep}"; model.save_pretrained(str(p)); self.tok.save_pretrained(str(p)); self.saved.append(ep); print(f"[checkpoint] {p}")
 
+    global SAVE_EVERY, TOTAL_EPOCHS
+    SAVE_EVERY = int(cfg.get("save_every_epochs", 1)); TOTAL_EPOCHS = 1 if args.smoke else int(cfg["epochs"])
     out_dir = Path(args.out); out_dir.mkdir(parents=True, exist_ok=True); set_seed(cfg["seed"])
     try:
         model = AutoModelForCausalLM.from_pretrained(cfg["base_model"], dtype=torch.bfloat16, device_map="cuda")

@@ -13,3 +13,6 @@ site/.astro/
 site/dist/
 site/node_modules/
 .polyglot-cache.json
+experiments/schumann-sft/runs/*/epoch*/
+experiments/schumann-sft/runs/*/hf-out/
+experiments/schumann-sft/*.log

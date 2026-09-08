@@ -35,8 +35,10 @@ case "$MODE" in
     python3 "$WORK/scripts/train_schumann_sft.py" --data "$WORK/data/sft-train.jsonl" --config "$WORK/lora-config.json" --out "$OUT"
     say "Predictions: base (fair), base + KB context, adapter (no context)"
     P="$WORK/scripts/predict_schumann.py"; T="$WORK/data/sft-test.jsonl"; C="$WORK/lora-config.json"
-    python3 "$P" --config "$C" --data "$T" --out "$OUT/preds-base-fair.jsonl"
-    python3 "$P" --config "$C" --data "$T" --context "$WORK/data/kb-context.md" --out "$OUT/preds-base-context.jsonl"
+    if [ -z "${SKIP_BASE:-}" ]; then
+      python3 "$P" --config "$C" --data "$T" --out "$OUT/preds-base-fair.jsonl"
+      python3 "$P" --config "$C" --data "$T" --context "$WORK/data/kb-context.md" --out "$OUT/preds-base-context.jsonl"
+    fi
     for e in $(ls -d "$OUT"/epoch* | xargs -n1 basename); do
       python3 "$P" --config "$C" --data "$T" --adapter "$OUT/$e" --out "$OUT/preds-lora-$e.jsonl"
     done
