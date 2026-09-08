@@ -31,7 +31,7 @@
 //   node runpod.mjs sync                   # push data + scripts to the pod
 //   node runpod.mjs fetch                  # pull the trained adapters back
 //   node runpod.mjs list                   # what is running (and billing)
-//   node runpod.mjs down <podId|--all>     # the compensator
+//   node runpod.mjs down <podId>     # the compensator
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { readFileSync, existsSync, writeFileSync, mkdirSync } from "node:fs";
@@ -265,20 +265,18 @@ async function cmdList() {
 }
 
 async function cmdDown(arg) {
-  need(arg, "which pod? Pass an id, or --all.");
-  let ids = [arg];
-  if (arg === "--all") {
-    const pods = await api("/pods");
-    ids = (Array.isArray(pods) ? pods : []).map((p) => p.id);
-    if (!ids.length) { console.log("No pods to tear down."); return; }
-  }
-  for (const id of ids) {
-    await api(`/pods/${id}`, { method: "DELETE" });
-    console.log(`terminated ${id}`);
-  }
+  // Tear down BY ID ONLY. `--all` terminated another session's pod on 2026-09-08 (every pod under the
+  // studio key, not just the one this tool deployed) and is gone. No id = the id in the state file.
+  need(arg !== "--all", "`--all` is not a thing here. Tear down by id: node runpod.mjs down <podId>.");
+  let id = arg;
+  if (!id && existsSync(STATE_PATH)) id = JSON.parse(readFileSync(STATE_PATH, "utf8")).id;
+  need(id, "which pod? Pass an id, or deploy first so the state file has one.");
+  await api(`/pods/${id}`, { method: "DELETE" });
+  console.log(`terminated ${id}`);
+  console.error(`terminated ${id} at ${new Date().toISOString()}`);
   const left = await api("/pods");
   const n = Array.isArray(left) ? left.length : 0;
-  console.log(n ? `\nWARNING: ${n} pod(s) STILL BILLING.` : "\nNothing is billing.");
+  console.log(n ? `${n} other pod(s) still running under this key (not ours to touch).` : "Nothing is billing.");
 }
 
 // ─── sync / fetch ────────────────────────────────────────────────────────────
@@ -355,13 +353,13 @@ async function cmdFetch() {
   sh("scp", ["-r", "-P", String(sshPort), "-i", key, "-o", "StrictHostKeyChecking=accept-new",
     `root@${publicIp}:${WORK}/runs/.`, dest]);
   console.log(`\nAdapters are local. The pod is STILL BILLING — tear it down now:`);
-  console.log(`  node runpod.mjs down --all`);
+  console.log(`  node runpod.mjs down <podId>`);
 }
 
 const [cmd, arg] = process.argv.slice(2);
 const table = { verify: cmdVerify, up: cmdUp, sync: cmdSync, fetch: cmdFetch, list: cmdList, down: () => cmdDown(arg) };
 if (!table[cmd]) {
-  console.log("usage: node runpod.mjs <verify|up|sync|fetch|list|down <podId|--all>>");
+  console.log("usage: node runpod.mjs <verify|up|sync|fetch|list|down <podId>>");
   process.exit(1);
 }
 table[cmd]().catch((err) => {
