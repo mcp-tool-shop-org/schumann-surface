@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Twelve-month dataset release (all raw months, both sensors, 24/24 verified against the station).
+- `schumann-analyst` LoRA on Qwen2.5-3B (`mcp-tool-shop/schumann-analyst-qwen2.5-3b-lora`), reported beside a fair base and a base-with-KB-in-context control.
+- Parallel range fetcher (16 streams) and `pipeline_month.py` end-to-end driver.
+
+### Changed
+- Cavity mode rests on a station-centred azimuthal atlas; the globe is a toggle.
+
 ## [1.0.0] - 2026-09-08
 
 ### Added

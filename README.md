@@ -11,6 +11,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT"></a>
   <a href="https://mcp-tool-shop-org.github.io/schumann-surface/"><img src="https://img.shields.io/badge/landing-page-0ea5e9" alt="Landing page"></a>
   <a href="https://huggingface.co/datasets/mcp-tool-shop/schumann-sierra-nevada"><img src="https://img.shields.io/badge/dataset-Hugging%20Face-ffcc4d" alt="Dataset"></a>
+  <a href="https://huggingface.co/mcp-tool-shop/schumann-analyst-qwen2.5-3b-lora"><img src="https://img.shields.io/badge/model-LoRA%20analyst-8b5cf6" alt="Model"></a>
 </p>
 
 <p align="center"><a href="README.md">English</a> · <a href="README.ja.md">日本語</a> · <a href="README.zh.md">中文</a> · <a href="README.es.md">Español</a> · <a href="README.fr.md">Français</a> · <a href="README.hi.md">हिन्दी</a> · <a href="README.it.md">Italiano</a> · <a href="README.pt-BR.md">Português (BR)</a></p>
@@ -22,8 +23,8 @@ cross-correlation panel. One month of a real ELF station rendered so a person ca
 daily lightning rhythm, the mode ribbons, and what a geomagnetic storm does and does not do.
 
 Status: v1.0.0. October and June 2013 from the Sierra Nevada ELF station (University of Granada)
-reproduced against the station's own published spectra and mode fits slot by slot; the remaining
-ten months of the raw archive are flowing through the same pipeline. The viewer is a single
+reproduced against the station's own published spectra and mode fits slot by slot, and so are the
+other ten months: all twelve raw months are on the dataset. The viewer is a single
 self-contained HTML file with four modes; live at the [landing page](https://mcp-tool-shop-org.github.io/schumann-surface/viewer/).
 
 ## What it shows
