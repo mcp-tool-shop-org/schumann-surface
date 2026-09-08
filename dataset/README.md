@@ -68,11 +68,34 @@ the reference bands. Three Lorentzians plus a linear term fitted in the amplitud
 
 ## Verification against the station's published fits
 
-| | Oct 2013 NS | Oct 2013 EW | Jun 2013 NS | Jun 2013 EW |
+Every month and both sensors, slot by slot against the station's own npz (the verifier exits non-zero outside tolerance):
+
+| Month | Sensor | spectrum ratio p5 / p95 | saturation corr | mode-1 centre, median Δ |
 |---|---|---|---|---|
-| spectrum ratio ours/station, p5–p95 | 1.0000 | 1.0000 | 1.0000 | 1.0000 |
-| saturation correlation | 1.000 | 1.000 | 1.000 | 1.000 |
-| mode-1 centre, median difference | +0.004 Hz | +0.008 Hz | +0.004 Hz | −0.02 Hz |
+| 2013-03 | NS | 1.0000 / 1.0000 | 1.000 | +0.004 Hz |
+| 2013-03 | EW | 1.0000 / 1.0000 | 1.000 | +0.008 Hz |
+| 2013-04 | NS | 1.0000 / 1.0000 | 1.000 | +0.004 Hz |
+| 2013-04 | EW | 1.0000 / 1.0000 | 1.000 | +0.007 Hz |
+| 2013-05 | NS | 1.0000 / 1.0000 | 1.000 | +0.003 Hz |
+| 2013-05 | EW | 1.0000 / 1.0000 | 1.000 | +0.006 Hz |
+| 2013-06 | NS | 1.0000 / 1.0000 | 1.000 | +0.004 Hz |
+| 2013-06 | EW | 1.0000 / 1.0000 | 1.000 | -0.020 Hz |
+| 2013-07 | NS | 1.0000 / 1.0000 | 1.000 | +0.003 Hz |
+| 2013-07 | EW | 1.0000 / 1.0000 | 1.000 | +0.005 Hz |
+| 2013-08 | NS | 1.0000 / 1.0000 | 1.000 | +0.004 Hz |
+| 2013-08 | EW | 1.0000 / 1.0000 | 1.000 | +0.005 Hz |
+| 2013-09 | NS | 1.0000 / 1.0000 | 1.000 | +0.004 Hz |
+| 2013-09 | EW | 1.0000 / 1.0000 | 1.000 | +0.008 Hz |
+| 2013-10 | NS | 1.0000 / 1.0000 | 1.000 | +0.004 Hz |
+| 2013-10 | EW | 1.0000 / 1.0000 | 1.000 | +0.007 Hz |
+| 2013-11 | NS | 1.0000 / 1.0000 | 1.000 | +0.005 Hz |
+| 2013-11 | EW | 1.0000 / 1.0000 | 1.000 | +0.006 Hz |
+| 2013-12 | NS | 1.0000 / 1.0000 | 1.000 | +0.005 Hz |
+| 2013-12 | EW | 1.0000 / 1.0000 | 1.000 | +0.007 Hz |
+| 2017-01 | NS | 1.0000 / 1.0000 | 1.000 | +0.006 Hz |
+| 2017-01 | EW | 1.0000 / 1.0000 | 1.000 | +0.008 Hz |
+| 2017-02 | NS | 1.0000 / 1.0000 | 1.000 | +0.007 Hz |
+| 2017-02 | EW | 1.0000 / 1.0000 | 1.000 | +0.009 Hz |
 
 ## Knowledge base
 
