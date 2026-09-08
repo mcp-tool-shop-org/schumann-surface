@@ -1,0 +1,9 @@
+data/
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+dist/
+out/
+*.npz
+*.bin
