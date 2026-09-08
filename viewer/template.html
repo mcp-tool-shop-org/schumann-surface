@@ -35,10 +35,15 @@ small{color:var(--mut)}
 #atlas.show{display:block}
 #projRow{display:flex;gap:4px;margin:6px 0}
 #projRow button.on{background:#1e3a5f;border-color:#7dd3fc;color:#7dd3fc}
+#year{position:absolute;inset:0 340px 0 0;display:none;z-index:1;background:#0b0e14;cursor:crosshair}
+#year.show{display:block}
+body.year-mode #scrub{display:none}
+#months{line-height:1.8}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style></head><body>
 <div id="gl"></div>
 <canvas id="atlas"></canvas>
+<canvas id="year"></canvas>
 <div id="tip"><b>hover the surface</b><br><span class="sub">click pins the spectrum · arrows step · drag: rotate · wheel: zoom</span></div>
 <div id="scrub">
  <div id="scrubTop"><span class="stat" id="tLabel"></span><span class="sub" id="stormTag"></span></div>
@@ -55,6 +60,7 @@ small{color:var(--mut)}
   <button type="button" data-v="stack">Day stack</button>
   <button type="button" data-v="cavity">Cavity</button>
   <button type="button" data-v="traj">Trajectory</button>
+  <button type="button" data-v="year">Year</button>
  </div>
  <h2>What you are looking at</h2>
  <p id="blurb"></p>
@@ -90,6 +96,13 @@ small{color:var(--mut)}
   <label>Time compression <input type="range" id="tComp" min="1" max="10" value="6" style="flex:1"> <span id="tCompVal" class="stat">6×</span></label>
   <p class="sub">Default 6×: one day is a short step against the frequency × amplitude plane, so the diurnal helix reads as a coil. 1× is the raw month-long streak.</p>
  </div>
+ <div id="optYear" class="vopt">
+  <h2>Dose-response</h2>
+  <label><input type="radio" name="ydose" id="ydoseNS" value="NS" checked> NS</label>
+  <label><input type="radio" name="ydose" id="ydoseEW" value="EW"> EW</label>
+  <p class="sub">Kp classes from Cann 2026: &lt; 5, 5–6.7, ≥ 7. Month-demeaned subtracts that month's median. Bootstrap 1000, seed 13. The ≥ 7 class is two days; they are named, not smoothed.</p>
+  <div class="stat" id="yearStat"></div>
+ </div>
  <div id="lookCavity" class="vopt">
   <h2>What to look for</h2>
   <p class="sub">Rest state is the atlas: Sierra Nevada at the centre, rim = antipode. Gold pie slices are the measured bearing (two opposite lobes). Concentric red/green/blue rings are modes 1–3. Labelled discs are the three chimneys at their true range and bearing; disc size is the UTC model. Scrub to ~14 UTC: Africa should sit in a slice. ~20 UTC: the Americas. Globe is a toggle, not the default.</p>
@@ -97,6 +110,10 @@ small{color:var(--mut)}
  <div id="lookTraj" class="vopt">
   <h2>What to look for</h2>
   <p class="sub">Grey tube is the month-mean diurnal coil (amplitude from <span class="stat">diurnal</span>). Time is compressed so one day is a short step; use the slider if you want the raw streak. The coloured path is the data (Kp as colour). The yellow bead with the halo is the flagged storm. A path that leaves the coil is a departure, not a fourth mode.</p>
+ </div>
+ <div id="lookYear" class="vopt">
+  <h2>What to look for</h2>
+  <p class="sub">The 2013→2017 hole is a gap, not a join. Two storm days (1 Jun and 2 Oct 2013) are marked. The grey band is the quiet-class interval (the null). If ≥ 7 sits inside it after month-demeaning, this station does not show a season-controlled storm effect. n = 2 is two days.</p>
  </div>
  <div id="legend">
   <span><i class="sw" style="background:#3b82f6"></i>Kp &lt; 4</span><span><i class="sw" style="background:#f59e0b"></i>Kp 4–5</span><span><i class="sw" style="background:#ef4444"></i>Kp ≥ 5</span>
@@ -136,11 +153,13 @@ const BLURB={
  surface:'Time runs left to right across one month. Frequency runs front to back, 6–25 Hz (modes 1–3). Height and colour are magnetic amplitude in dB re 1 pT/√Hz. The ridges near 7.8, 14 and 20 Hz are the Earth–ionosphere cavity ringing. Lightning drives them, so they breathe once a day as Southeast Asia, then Africa, then the Americas rotate under the sun.',
  stack:'The month is folded into a volume: hour of day (left–right), day of month (up), frequency (front–back). Translucent slabs are the spectrogram. The three mode ridges are sheets through the block; a storm day is where those sheets bulge. Threshold hides quiet voxels. This station resolves 6–25 Hz only.',
  cavity:'Station-centred azimuthal atlas: Sierra Nevada at the centre, radius is angular distance (rim = 180° / the antipode), angle is bearing (north up). Concentric red / green / blue rings are |P<sub>n</sub><sup>1</sup>(cos θ)| × the pinned mode-1…3 amplitudes. The two gold slices are the measured polarisation of mode 1 (180° ambiguous); their width is 1 − coherence. Labelled discs are the three chimneys at their true range and bearing from this station; size follows the UTC model, not a lightning map. Globe is the same data on a sphere. One-station inversion.',
- traj:'Mode-1 centre frequency × mode-1 peak amplitude × time. Colour is Kp. The grey helix is the month-mean diurnal loop (amplitude from the measured <span class="stat">diurnal</span> table). The marked interval is a departure from that loop, not a new cavity mode.'
+ traj:'Mode-1 centre frequency × mode-1 peak amplitude × time. Colour is Kp. The grey helix is the month-mean diurnal loop (amplitude from the measured <span class="stat">diurnal</span> table). The marked interval is a departure from that loop, not a new cavity mode.',
+ year:'Twelve months as 361 days. Top: daily mean mode-1 amplitude, NS and EW, with a 7-day median. Kp max as a strip; two days at Kp ≥ 7 are marked. The 2014–2016 hole is a gap. Middle: Kp dose-response of daily mode-1 amplitude (quiet / moderate / storm) with bootstrap 95 % intervals and a month-demeaned twin. Bottom: monthly mean centre frequency of modes 1–3, NS. One month\'s lag panel is a null; the year is where a storm effect would show.'
 };
 document.getElementById('blurb').innerHTML=BLURB.surface;
 (function monthNav(){
- const here=D.month, rows=[{id:'2013-10',href:'index.html',label:'Oct 2013'},{id:'2013-06',href:'SN_201306.html',label:'Jun 2013'}];
+ const here=D.month;
+ const rows=[{id:'2013-03',href:'SN_201303.html',label:'Mar 2013'},{id:'2013-04',href:'SN_201304.html',label:'Apr 2013'},{id:'2013-05',href:'SN_201305.html',label:'May 2013'},{id:'2013-06',href:'SN_201306.html',label:'Jun 2013'},{id:'2013-07',href:'SN_201307.html',label:'Jul 2013'},{id:'2013-08',href:'SN_201308.html',label:'Aug 2013'},{id:'2013-09',href:'SN_201309.html',label:'Sep 2013'},{id:'2013-10',href:'index.html',label:'Oct 2013'},{id:'2013-11',href:'SN_201311.html',label:'Nov 2013'},{id:'2013-12',href:'SN_201312.html',label:'Dec 2013'},{id:'2017-01',href:'SN_201701.html',label:'Jan 2017'},{id:'2017-02',href:'SN_201702.html',label:'Feb 2017'}];
  q('months').innerHTML=rows.map(r=>r.id===here?'<a class="on" href="'+r.href+'">'+r.label+'</a>':'<a href="'+r.href+'">'+r.label+'</a>').join(' · ');
 })();
 const CHIMNEYS=D.chimneys_month||D.chimneys||[
@@ -394,11 +413,156 @@ function drawAtlas(i){
 function setCavityProj(useAtlas){
  cavAtlas=!!useAtlas;
  q('projAtlas').classList.toggle('on',cavAtlas);q('projGlobe').classList.toggle('on',!cavAtlas);
- const show=view==='cavity'&&cavAtlas;
- atlas.classList.toggle('show',show);
- renderer.domElement.style.visibility=show?'hidden':'visible';
+ syncOverlays();
  if(view==='cavity'){if(cavAtlas)drawAtlas(pin);else paintShell(pin);}
+ if(view==='year')drawYear();
 }
+function syncOverlays(){
+ const showAtlas=view==='cavity'&&cavAtlas, showYear=view==='year';
+ atlas.classList.toggle('show',showAtlas);
+ q('year').classList.toggle('show',showYear);
+ document.body.classList.toggle('year-mode',showYear);
+ renderer.domElement.style.visibility=(showAtlas||showYear)?'hidden':'visible';
+}
+function mulberry32(a){return function(){let t=a+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;};}
+function bootMean(arr,nBoot,seed){
+ const rng=mulberry32(seed),n=arr.length,means=[];
+ for(let b=0;b<nBoot;b++){let s=0;for(let i=0;i<n;i++)s+=arr[Math.floor(rng()*n)%n];means.push(s/n);}
+ means.sort((a,b)=>a-b);
+ return {mean:arr.reduce((s,v)=>s+v,0)/n, lo:means[Math.floor(0.025*nBoot)], hi:means[Math.min(nBoot-1,Math.floor(0.975*nBoot))]};
+}
+function kpClass(kp){if(!(kp>=0))return -1;if(kp<5)return 0;if(kp>=7)return 2;return 1;}
+function drawYear(){
+ const days=(D.year&&D.year.days)||[];
+ const c=q('year'),g=c.getContext('2d');
+ const cssW=Math.max(1,innerWidth-340),cssH=Math.max(1,innerHeight),dpr=Math.min(devicePixelRatio||1,2);
+ c.width=Math.floor(cssW*dpr);c.height=Math.floor(cssH*dpr);c.style.width=cssW+'px';c.style.height=cssH+'px';
+ g.setTransform(dpr,0,0,dpr,0,0);
+ g.fillStyle='#0b0e14';g.fillRect(0,0,cssW,cssH);
+ if(!days.length){g.fillStyle='#8b93a5';g.font='13px "IBM Plex Sans",system-ui';g.fillText('No year block on this page.',24,40);return;}
+ const n13=days.filter(d=>d.date<'2017').length, gap=18, nTot=n13+gap+(days.length-n13);
+ const padL=52,padR=18,plotW=cssW-padL-padR;
+ function xOf(i){const slot=days[i].date<'2017'?i:n13+gap+(i-n13);return padL+slot/nTot*plotW;}
+ const sens=q('ydoseEW').checked?'EW':'NS';
+ const aNS=days.map(d=>d.NS&&d.NS.a&&d.NS.a[0]>0?d.NS.a[0]:NaN);
+ const aEW=days.map(d=>d.EW&&d.EW.a&&d.EW.a[0]>0?d.EW.a[0]:NaN);
+ const aS=sens==='EW'?aEW:aNS;
+ const blk=days.map(d=>d.date<'2017'?0:1);
+ function rollMed(arr){
+  const out=new Float64Array(arr.length);out.fill(NaN);
+  for(let i=0;i<arr.length;i++){const w=[];for(let j=i-3;j<=i+3;j++){if(j<0||j>=arr.length||blk[j]!==blk[i]||!(arr[j]===arr[j]))continue;w.push(arr[j]);}if(w.length<4)continue;w.sort((p,q)=>p-q);out[i]=w[w.length>>1];}
+  return out;
+ }
+ const medNS=rollMed(aNS),medEW=rollMed(aEW);
+ const amps=[...aNS,...aEW].filter(v=>v===v);
+ const aMin=Math.min(...amps,0.2),aMax=Math.max(...amps,0.5);
+ const yR0=28,yRh=cssH*0.36,yK0=yR0+yRh+6,yKh=34,yD0=yK0+yKh+36,yDh=cssH*0.26,yS0=yD0+yDh+28,ySh=Math.max(70,cssH-yS0-28);
+ const yA=v=>yR0+yRh-(v-aMin)/(aMax-aMin)*yRh;
+ g.fillStyle='#8b93a5';g.font='11px "IBM Plex Sans",system-ui';g.textAlign='left';
+ g.fillText('daily mean mode-1 amplitude  ·  7-day median',padL,16);
+ g.fillStyle='#7dd3fc';g.fillText('NS',padL+250,16);g.fillStyle='#fbbf24';g.fillText('EW',padL+278,16);g.fillStyle='#e6e9ef';g.fillText('median',padL+310,16);
+ g.strokeStyle='#26303f';
+ for(let t=0;t<=4;t++){const y=yR0+yRh*t/4;g.beginPath();g.moveTo(padL,y);g.lineTo(cssW-padR,y);g.stroke();g.fillStyle='#8b93a5';g.font='10px "IBM Plex Mono",monospace';g.textAlign='right';g.fillText((aMax-(aMax-aMin)*t/4).toFixed(2),padL-6,y+3);}
+ // month bands + gap
+ const months=[];for(const d of days){const m=d.date.slice(0,7);if(!months.length||months[months.length-1].id!==m)months.push({id:m,i0:days.indexOf(d),i1:days.indexOf(d)});else months[months.length-1].i1=days.indexOf(d);}
+ months.forEach((m,k)=>{const x0=xOf(m.i0),x1=xOf(m.i1);if(m.id===D.month){g.fillStyle='rgba(125,211,252,.08)';g.fillRect(x0,yR0,Math.max(2,x1-x0),yRh);}g.strokeStyle='#26303f';g.beginPath();g.moveTo(x0,yR0);g.lineTo(x0,yK0+yKh);g.stroke();});
+ const gapX0=xOf(n13-1),gapX1=xOf(n13);
+ g.fillStyle='rgba(139,147,165,.12)';g.fillRect(gapX0,yR0,Math.max(8,gapX1-gapX0),yRh+yKh+8);
+ g.save();g.fillStyle='#8b93a5';g.font='10px "IBM Plex Sans",system-ui';g.textAlign='center';
+ g.translate((gapX0+gapX1)/2,yR0+yRh/2);g.rotate(-Math.PI/2);g.fillText('2014–2016 not in the archive',0,0);g.restore();
+ function strokeLine(arr,col,w){g.strokeStyle=col;g.lineWidth=w;g.beginPath();let p=false;for(let i=0;i<arr.length;i++){if(!(arr[i]===arr[i])){p=false;continue;}const x=xOf(i),y=yA(arr[i]);p?g.lineTo(x,y):g.moveTo(x,y);p=true;if(i===n13-1)p=false;}g.stroke();}
+ strokeLine(aNS,'#7dd3fc',1.2);strokeLine(aEW,'#fbbf24',1.2);strokeLine(medNS,'#e6e9ef',1.6);strokeLine(medEW,'rgba(251,191,36,.7)',1.4);
+ // storms
+ days.forEach((d,i)=>{if(!(d.kp_max>=7))return;const x=xOf(i);g.strokeStyle='#ef4444';g.lineWidth=1.5;g.setLineDash([3,3]);g.beginPath();g.moveTo(x,yR0);g.lineTo(x,yK0+yKh);g.stroke();g.setLineDash([]);g.fillStyle='#ef4444';g.font='10px "IBM Plex Sans",system-ui';g.textAlign='left';g.fillText(d.date+'  Kp '+d.kp_max.toFixed(1),x+4,yR0+12);});
+ // Kp strip
+ g.fillStyle='#8b93a5';g.font='11px "IBM Plex Sans",system-ui';g.textAlign='left';g.fillText('Kp max',padL,yK0-4);
+ for(let i=0;i<days.length;i++){
+  const kp=days[i].kp_max;if(!(kp>=0))continue;
+  const x0=xOf(i),x1=i+1<days.length&&blk[i]===blk[i+1]?xOf(i+1):x0+2;
+  const h=Math.max(1,kp/9*yKh);
+  g.fillStyle=kp>=7?'#ef4444':kp>=5?'#f59e0b':'#3b82f6';
+  g.fillRect(x0,yK0+yKh-h,Math.max(1,x1-x0-0.5),h);
+ }
+ months.forEach(m=>{g.fillStyle='#8b93a5';g.font='10px "IBM Plex Sans",system-ui';g.textAlign='left';g.fillText(m.id.slice(2),xOf(m.i0)+2,yK0+yKh+12);});
+ // dose-response
+ const labs=['Kp < 5','5–6.7','≥ 7'];
+ function groups(useDemean){
+  const byM={};
+  if(useDemean){days.forEach((d,i)=>{if(!(aS[i]===aS[i]))return;const m=d.date.slice(0,7);(byM[m]||(byM[m]=[])).push(aS[i]);});}
+  const med={};if(useDemean)for(const m in byM){const w=byM[m].slice().sort((p,q)=>p-q);med[m]=w[w.length>>1];}
+  const G=[[],[],[]],dates=[[],[],[]];
+  days.forEach((d,i)=>{if(!(aS[i]===aS[i]))return;const c=kpClass(d.kp_max);if(c<0)return;G[c].push(useDemean?aS[i]-med[d.date.slice(0,7)]:aS[i]);dates[c].push(d.date);});
+  return {G,dates,stats:G.map(a=>a.length?bootMean(a,1000,13):null)};
+ }
+ const raw=groups(false),dem=groups(true);
+ const quiet=raw.stats[0];
+ function drawDose(boxX,boxW,pack,title,showRatio){
+  g.fillStyle='#8b93a5';g.font='11px "IBM Plex Sans",system-ui';g.textAlign='left';g.fillText(title,boxX,yD0-10);
+  const vals=pack.stats.filter(Boolean).flatMap(s=>[s.lo,s.hi,s.mean]);
+  let lo=Math.min(...vals),hi=Math.max(...vals);const pad=(hi-lo)*0.25||0.02;lo-=pad;hi+=pad;
+  const y=v=>yD0+yDh-(v-lo)/(hi-lo)*yDh;
+  if(pack.stats[0]){g.fillStyle='rgba(139,147,165,.22)';g.fillRect(boxX,y(pack.stats[0].hi),boxW,y(pack.stats[0].lo)-y(pack.stats[0].hi));}
+  const bw=boxW/5;
+  pack.stats.forEach((s,k)=>{
+   if(!s)return;
+   const cx=boxX+(k+0.7)*boxW/3,x=cx-bw/2;
+   g.fillStyle=k===2?'#ef4444':k===1?'#f59e0b':'#3b82f6';
+   const yM=y(s.mean),y0=y(0>lo&&0<hi?0:lo);
+   g.fillRect(x,Math.min(yM,y(s.lo)),bw,Math.abs(y(s.lo)-y(s.hi))||2);
+   g.strokeStyle='#e6e9ef';g.lineWidth=1.5;g.beginPath();g.moveTo(cx,y(s.lo));g.lineTo(cx,y(s.hi));g.moveTo(cx-4,y(s.lo));g.lineTo(cx+4,y(s.lo));g.moveTo(cx-4,y(s.hi));g.lineTo(cx+4,y(s.hi));g.stroke();
+   g.fillStyle='#e6e9ef';g.beginPath();g.arc(cx,yM,3,0,Math.PI*2);g.fill();
+   g.fillStyle='#8b93a5';g.font='10px "IBM Plex Sans",system-ui';g.textAlign='center';
+   g.fillText(labs[k],cx,yD0+yDh+12);
+   g.fillText('n='+pack.G[k].length,cx,yD0+yDh+24);
+   if(pack.G[k].length===2)g.fillText(pack.dates[k].join(', '),cx,yD0+yDh+36);
+  });
+ }
+ drawDose(padL,plotW*0.48,raw,'raw  ·  quiet-class band is the null',true);
+ drawDose(padL+plotW*0.52,plotW*0.48,dem,'month-demeaned  ·  each month\'s median subtracted',false);
+ // seasonal frequency
+ g.fillStyle='#8b93a5';g.font='11px "IBM Plex Sans",system-ui';g.textAlign='left';
+ g.fillText('monthly mean centre frequency, NS  ·  mode 1 expected ~7.6–7.9 Hz',padL,yS0-10);
+ const mf={};
+ days.forEach(d=>{if(!d.NS||!d.NS.f)return;const m=d.date.slice(0,7);(mf[m]||(mf[m]=[[],[],[]]));for(let k=0;k<3;k++)if(d.NS.f[k]>0)mf[m][k].push(d.NS.f[k]);});
+ const mids=months.map(m=>m.id);
+ const cols=['#f87171','#34d399','#60a5fa'];
+ const fvals=[];mids.forEach(id=>{if(!mf[id])return;for(let k=0;k<3;k++){const a=mf[id][k];if(a.length)fvals.push(a.reduce((s,v)=>s+v,0)/a.length);}});
+ const fLo=Math.min(7.4,...fvals),fHi=Math.max(21,...fvals);
+ const yF=v=>yS0+ySh-(v-fLo)/(fHi-fLo)*ySh;
+ g.fillStyle='rgba(248,113,113,.12)';g.fillRect(padL,yF(7.9),plotW,yF(7.6)-yF(7.9));
+ for(let k=0;k<3;k++){
+  g.strokeStyle=cols[k];g.lineWidth=1.6;g.beginPath();let p=false;
+  mids.forEach((id,ii)=>{if(!mf[id]||!mf[id][k].length){p=false;return;}const mean=mf[id][k].reduce((s,v)=>s+v,0)/mf[id][k].length;const x=(xOf(months[ii].i0)+xOf(months[ii].i1))/2,y=yF(mean);p?g.lineTo(x,y):g.moveTo(x,y);p=true;if(id==='2013-12')p=false;});
+  g.stroke();
+ }
+ g.fillStyle='#8b93a5';g.font='10px "IBM Plex Sans",system-ui';
+ g.fillStyle='#f87171';g.fillText('m1',padL,yS0+10);g.fillStyle='#34d399';g.fillText('m2',padL+28,yS0+10);g.fillStyle='#60a5fa';g.fillText('m3',padL+56,yS0+10);
+ // numbers
+ const fmt=(s,n)=>s?s.mean.toFixed(4)+'  n='+n+'  CI ['+s.lo.toFixed(4)+', '+s.hi.toFixed(4)+']':'n/a';
+ const q0=raw.stats[0]&&raw.stats[0].mean;
+ const lines=['dose-response  '+sens+'  mode-1 daily mean  ·  361 days  ·  bootstrap 1000 seed 13'];
+ raw.stats.forEach((s,k)=>{const n=raw.G[k].length;const ratio=s&&q0? (s.mean/q0).toFixed(3):'—';
+  let row=labs[k]+'  mean '+fmt(s,n)+(s&&q0?'  ratio '+ratio:'');
+  if(n===2)row+='  days '+raw.dates[k].join(', ');
+  lines.push('raw   '+row);});
+ dem.stats.forEach((s,k)=>{const n=dem.G[k].length;const dlt=s&&dem.stats[0]?(s.mean-dem.stats[0].mean):null;
+  let row=labs[k]+'  residual '+fmt(s,n)+(dlt!=null?'  Δ vs quiet '+(dlt>=0?'+':'')+dlt.toFixed(4):'');
+  if(n===2)row+='  days '+dem.dates[k].join(', ');
+  lines.push('de-mean '+row);});
+ q('yearStat').textContent=lines.join('\n');
+}
+q('ydoseNS').onchange=q('ydoseEW').onchange=()=>{if(view==='year')drawYear();};
+q('year').addEventListener('mousemove',e=>{
+ if(view!=='year')return;
+ const days=(D.year&&D.year.days)||[];if(!days.length)return;
+ const r=q('year').getBoundingClientRect(),x=e.clientX-r.left;
+ const n13=days.filter(d=>d.date<'2017').length,gap=18,nTot=n13+gap+(days.length-n13),padL=52,padR=18,plotW=r.width-padL-padR;
+ const slot=Math.max(0,Math.min(nTot-1,(x-padL)/plotW*nTot));
+ let i=slot<n13?Math.floor(slot):(slot<n13+gap?-1:n13+Math.floor(slot-n13-gap));
+ if(i<0||i>=days.length){tip.innerHTML='<b>2014–2016</b><br>not in the archive';return;}
+ const d=days[i],ns=d.NS&&d.NS.a?d.NS.a[0]:NaN,ew=d.EW&&d.EW.a?d.EW.a[0]:NaN;
+ tip.innerHTML='<b>'+d.date+'</b>  n='+d.n+' slots<br>NS m1 '+(ns===ns?ns.toFixed(3):'—')+'  EW '+(ew===ew?ew.toFixed(3):'—')+' pT/√Hz<br>Kp max '+(d.kp_max>=0?d.kp_max.toFixed(1):'—')+(d.kp_max>=7?'  storm day':'');
+});
 const mdTraj=D.modes.NS;
 const trajAs=[],trajFs=[];if(mdTraj){for(let i=0;i<nt;i++){if(mdTraj.a[i][0]>0)trajAs.push(mdTraj.a[i][0]);if(mdTraj.f[i][0]>0)trajFs.push(mdTraj.f[i][0]);}}
 const aLo=Math.min(...trajAs,0.2),aHi=Math.max(...trajAs,0.6),fLo=Math.min(...trajFs,7),fHi=Math.max(...trajFs,8.5);
@@ -472,7 +636,7 @@ el.addEventListener('mousemove',e=>{
  else hover(e);
 });
 el.addEventListener('wheel',e=>{e.preventDefault();going.flag=false;if(reduceMotion){dist=Math.max(80,Math.min(8000,dist*(1+e.deltaY*0.001)));place();}else dDs+=e.deltaY*0.001;},{passive:false});
-addEventListener('resize',()=>{renderer.setSize(W(),H());cam.aspect=W()/H();cam.updateProjectionMatrix();drawKpStrip();drawSlice(sheets[pinSheet],pin,D.modes[pinSheet]?D.modes[pinSheet].f[pin]:null);drawX();if(view==='cavity'&&cavAtlas)drawAtlas(pin);});
+addEventListener('resize',()=>{renderer.setSize(W(),H());cam.aspect=W()/H();cam.updateProjectionMatrix();drawKpStrip();drawSlice(sheets[pinSheet],pin,D.modes[pinSheet]?D.modes[pinSheet].f[pin]:null);drawX();if(view==='cavity'&&cavAtlas)drawAtlas(pin);if(view==='year')drawYear();});
 // hover -> tooltip + thin cursor only (spectrum stays pinned)
 const ray=new THREE.Raycaster(),mouse=new THREE.Vector2(),tip=document.getElementById('tip');
 const fmtT=t=>new Date(t*1000).toISOString().slice(0,16).replace('T',' ')+' UTC';
@@ -532,6 +696,7 @@ function pinAt(i){
  const a=md.a[pin][0],f=md.f[pin][0];
  if(a>0&&f>0&&window._trajY)trajMark.position.set(tX(pin),window._trajY(a),window._trajZ(f));
  if(view==='cavity'){if(cavAtlas)drawAtlas(pin);else paintShell(pin);}
+ if(view==='year')drawYear();
  drawKpStrip();
  const p1=polAt(pin,0);const polTxt=p1?'<br>pol M1: az '+(p1.az*180/Math.PI).toFixed(0)+'° · coh '+p1.coh.toFixed(2)+' · fan ±'+(fanHalf(p1.coh)*180/Math.PI).toFixed(0)+'°':'';
  const hint=view==='cavity'&&cavAtlas?'arrows step 30 min (shift: 1 day) · Atlas / Globe in the panel':'drag: rotate · wheel: zoom · right-drag: pan · arrows step 30 min (shift: 1 day)';
@@ -567,10 +732,10 @@ function setView(v){
  view=v;
  gSurface.visible=v==='surface';gStack.visible=v==='stack';gCavity.visible=v==='cavity';gTraj.visible=v==='traj';
  document.querySelectorAll('#modes button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
- q('optSurface').classList.toggle('show',v==='surface');q('optStack').classList.toggle('show',v==='stack');q('optCavity').classList.toggle('show',v==='cavity');q('optTraj').classList.toggle('show',v==='traj');
- q('lookCavity').classList.toggle('show',v==='cavity');q('lookTraj').classList.toggle('show',v==='traj');
+ q('optSurface').classList.toggle('show',v==='surface');q('optStack').classList.toggle('show',v==='stack');q('optCavity').classList.toggle('show',v==='cavity');q('optTraj').classList.toggle('show',v==='traj');q('optYear').classList.toggle('show',v==='year');
+ q('lookCavity').classList.toggle('show',v==='cavity');q('lookTraj').classList.toggle('show',v==='traj');q('lookYear').classList.toggle('show',v==='year');
  q('blurb').innerHTML=BLURB[v];
- camGoto(PRESET[v]);
+ if(PRESET[v])camGoto(PRESET[v]);
  if(v==='stack')applyIso();
  setCavityProj(cavAtlas);
  pinAt(pin);
@@ -617,6 +782,6 @@ q('serA').onchange=drawX;q('serB').onchange=drawX;drawX();
   target.x+=dTx*DAMP;target.y+=dTy*DAMP;target.z+=dTz*DAMP;
   const f=1-DAMP;dTh*=f;dPh*=f;dDs*=f;dTx*=f;dTy*=f;dTz*=f;
  }
- place();if(!(view==='cavity'&&cavAtlas))renderer.render(scene,cam);
+ place();if(!(view==='cavity'&&cavAtlas)&&view!=='year')renderer.render(scene,cam);
 })();
 </script></body></html>
