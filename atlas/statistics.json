@@ -122,7 +122,9 @@
         "collapsed": false,
         "confidence": "low",
         "importsAndCoChanges": [],
-        "importsOnly": []
+        "importsOnly": [
+          "tests"
+        ]
       },
       "cohesion": null,
       "cohesionDropped": false,
@@ -195,8 +197,8 @@
         "path": ".gitattributes"
       },
       {
-        "commits": 2,
-        "lines": 24,
+        "commits": 3,
+        "lines": 32,
         "path": ".github/workflows/ci.yml"
       },
       {
@@ -283,6 +285,31 @@
         "commits": 1,
         "lines": 9,
         "path": "assets/logo.svg"
+      },
+      {
+        "commits": 1,
+        "lines": 79,
+        "path": "atlas/README.md"
+      },
+      {
+        "commits": 1,
+        "lines": 46,
+        "path": "atlas/boundaries.yaml"
+      },
+      {
+        "commits": 1,
+        "lines": 187,
+        "path": "atlas/page.json"
+      },
+      {
+        "commits": 1,
+        "lines": 948,
+        "path": "atlas/statistics.json"
+      },
+      {
+        "commits": 1,
+        "lines": 1563,
+        "path": "atlas/structure.json"
       },
       {
         "commits": 3,
@@ -898,15 +925,15 @@
   },
   "confidence": {
     "level": "low",
-    "reason": "fewer than 30 qualifying commits in the window, and fewer than 20 source files reach 10 revisions"
+    "reason": "fewer than 30 qualifying commits in the window, and fewer than 25 source files reach 10 revisions"
   },
-  "generatedAt": "2026-09-25T09:21:37.553Z",
+  "generatedAt": "2026-09-30T21:55:04.012Z",
   "generatedFrom": {
-    "commit": "91dd3567950759f1ee0e05a5971ad2253d66cb5a"
+    "commit": "a04d2b2a12e0d65f987d7f5d6b5d4c6a2db4a6c0"
   },
   "pairs": [],
   "parameters": {
-    "appliedChangesetLimit": 35.5,
+    "appliedChangesetLimit": 36.75,
     "changeset": 50,
     "changesetFraction": 0.25,
     "cohesionDrop": 0.2,
@@ -915,16 +942,16 @@
     "floor": "fallen",
     "floorHeld": false,
     "floorTrigger": "both",
-    "headDate": "2026-09-08T12:48:40-04:00",
-    "inScopeFiles": 142,
+    "headDate": "2026-09-25T02:37:33-07:00",
+    "inScopeFiles": 147,
     "pinnedStart": null,
-    "priorFloor": null,
-    "qualifyingCommits": 23,
+    "priorFloor": "fallen",
+    "qualifyingCommits": 24,
     "qualifyingMinimum": 30,
     "revisions": 5,
     "shared": 10,
     "sharedFloorUsed": 3,
-    "since": "2026-03-12T16:48:40.000Z",
+    "since": "2026-03-29T09:37:33.000Z",
     "sourceExtensions": [
       ".js",
       ".mjs",

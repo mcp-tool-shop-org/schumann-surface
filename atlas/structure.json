@@ -32,7 +32,7 @@
       "externals": 0,
       "files": [
         {
-          "hash": "f66b7c3210decf51438c7ba1af5d6c5393582d2193c863cbe812798224b0d345",
+          "hash": "d8629cdc0085f464a8147d35403218183f827ce1d621435cded295ef7b2f14fe",
           "path": ".github/workflows/ci.yml"
         },
         {
@@ -208,8 +208,8 @@
       "unresolvedSites": 0
     },
     {
-      "dynamicReads": 6,
-      "dynamicSpawns": 1,
+      "dynamicReads": 3,
+      "dynamicSpawns": 3,
       "dynamicSpawnsInTests": 0,
       "dynamicWrites": 0,
       "entryPoints": [],
@@ -223,6 +223,17 @@
           "exports": [
             "main",
             "serve"
+          ],
+          "failurePaths": [
+            {
+              "kind": "except",
+              "line": 23
+            },
+            {
+              "in": "main",
+              "kind": "raise",
+              "line": 102
+            }
           ],
           "hash": "28c8132997b0f32c25e5e49ded51e2191c086be0ae5bee4e5502239ae0aa4dd2",
           "importsFiles": [
@@ -248,6 +259,13 @@
             "grade",
             "hit",
             "numbers"
+          ],
+          "failurePaths": [
+            {
+              "in": "numbers",
+              "kind": "except",
+              "line": 18
+            }
           ],
           "hash": "7df9bf7c790edaa2b5543ab5b2599e230deeed08d4b83e953f20544793b28d49",
           "path": "experiments/schumann-sft/grade.py"
@@ -284,6 +302,38 @@
           "path": "experiments/schumann-sft/run_pod_pools.sh"
         },
         {
+          "failurePaths": [
+            {
+              "in": "api",
+              "kind": "catch",
+              "line": 121
+            },
+            {
+              "in": "api",
+              "kind": "throw",
+              "line": 126
+            },
+            {
+              "in": "cmdUp",
+              "kind": "catch",
+              "line": 196
+            },
+            {
+              "in": "cmdUp",
+              "kind": "catch",
+              "line": 241
+            },
+            {
+              "in": "sh",
+              "kind": "throw",
+              "line": 303
+            },
+            {
+              "in": "sh",
+              "kind": "throw",
+              "line": 304
+            }
+          ],
           "hash": "010237f98ccb697d524069bb8bf9d62928c3a2bbc05f09ef2806c45482dc8f30",
           "path": "experiments/schumann-sft/runpod.mjs"
         },
@@ -359,6 +409,13 @@
           "exports": [
             "main"
           ],
+          "failurePaths": [
+            {
+              "in": "main",
+              "kind": "except",
+              "line": 31
+            }
+          ],
           "hash": "2253a69b35cfe9da8c819dacef913f26c46968a3fb6a3b84e326880537c379d2",
           "path": "experiments/schumann-sft/scripts/predict_schumann.py"
         },
@@ -367,6 +424,38 @@
             "build_examples",
             "main",
             "render_with_spans"
+          ],
+          "failurePaths": [
+            {
+              "in": "render_with_spans",
+              "kind": "raise",
+              "line": 27
+            },
+            {
+              "in": "build_examples",
+              "kind": "raise",
+              "line": 42
+            },
+            {
+              "in": "build_examples",
+              "kind": "raise",
+              "line": 46
+            },
+            {
+              "in": "main",
+              "kind": "raise",
+              "line": 62
+            },
+            {
+              "in": "main",
+              "kind": "raise",
+              "line": 72
+            },
+            {
+              "in": "main",
+              "kind": "except",
+              "line": 122
+            }
           ],
           "hash": "dda832737b45e9736559116e64117747515280e9641e19e613da46221cb455cf",
           "path": "experiments/schumann-sft/scripts/train_schumann_sft.py"
@@ -393,7 +482,7 @@
       "origin": "mixed",
       "outsidePlaces": [
         {
-          "reads": 7,
+          "reads": 11,
           "where": [
             "caller"
           ],
@@ -407,7 +496,7 @@
           "writes": 2
         }
       ],
-      "outsideReads": 14,
+      "outsideReads": 18,
       "outsideWrites": 4,
       "role": "code",
       "testedBy": 1,
@@ -501,7 +590,7 @@
       "unresolvedSites": 0
     },
     {
-      "dynamicReads": 15,
+      "dynamicReads": 14,
       "dynamicSpawns": 0,
       "dynamicSpawnsInTests": 0,
       "dynamicWrites": 0,
@@ -534,6 +623,18 @@
             "main",
             "read_central_directory"
           ],
+          "failurePaths": [
+            {
+              "in": "fetch_part",
+              "kind": "raise",
+              "line": 91
+            },
+            {
+              "in": "main",
+              "kind": "except",
+              "line": 118
+            }
+          ],
           "hash": "e9d2d878489f7b0e9091c39ec88a334ad7f59e0c8e39c73b333e6a60cce0b763",
           "path": "scripts/fetch_zenodo_month.py"
         },
@@ -543,6 +644,13 @@
             "fetch_granada",
             "month",
             "run"
+          ],
+          "failurePaths": [
+            {
+              "in": "fetch_granada",
+              "kind": "except",
+              "line": 61
+            }
           ],
           "hash": "d5454ffe708773e12f66818c51687b2c71d8928076e8b7ce4613a180db0910fa",
           "path": "scripts/pipeline_month.py"
@@ -572,6 +680,13 @@
             "scal",
             "slot_spectrum"
           ],
+          "failurePaths": [
+            {
+              "in": "fit_modes",
+              "kind": "except",
+              "line": 124
+            }
+          ],
           "hash": "77f79f9ff5c381345990aa118f23e4627925500724afe831ba0ea95b6ef63fef",
           "path": "scripts/process_month.py"
         },
@@ -589,8 +704,21 @@
       "importConfidence": "full",
       "name": "scripts",
       "origin": "authored",
+      "outsidePlaces": [
+        {
+          "reads": 1,
+          "where": [
+            "caller"
+          ],
+          "writes": 0
+        }
+      ],
+      "outsideReads": 1,
       "role": "code",
-      "testedBy": 0,
+      "testRunners": [
+        "pytest"
+      ],
+      "testedBy": 1,
       "unresolvedSites": 0
     },
     {
@@ -704,6 +832,14 @@
         },
         {
           "hash": "4fb84a646c4d833c33f4058e1ed1775849e855c65e5adb7e45d2a633674bd603",
+          "importOrder": [
+            "site/src/styles/global.css",
+            "site/src/site-config.ts"
+          ],
+          "importsFiles": [
+            "site/src/site-config.ts",
+            "site/src/styles/global.css"
+          ],
           "path": "site/src/pages/index.astro"
         },
         {
@@ -751,6 +887,9 @@
             "test_spectrum_recovers_tone_amplitude"
           ],
           "hash": "6bd6382594ec4509a7199906bae21b6100bc3603af3a26fb12b90f3f0d84160c",
+          "importsFiles": [
+            "scripts/process_month.py"
+          ],
           "path": "tests/test_chain.py"
         }
       ],
@@ -761,15 +900,11 @@
       "name": "tests",
       "origin": "authored",
       "role": "test",
-      "testedBy": 0,
-      "unresolvedNamed": [
-        {
-          "path": "tests/test_chain.py",
-          "specifier": "process_month",
-          "why": "unplaced"
-        }
+      "testRunners": [
+        "pytest"
       ],
-      "unresolvedSites": 1
+      "testedBy": 0,
+      "unresolvedSites": 0
     },
     {
       "dynamicReads": 0,
@@ -906,28 +1041,84 @@
       "checksCount": 0,
       "commands": [
         {
+          "dir": "",
           "job": "test",
-          "step": "Atlas check",
-          "text": "npx --yes @dogfood-lab/atlas@1.21.0 check"
+          "programs": [
+            "npx"
+          ],
+          "step": "Atlas check"
         },
         {
+          "dir": "",
           "job": "test",
-          "step": "4",
-          "text": "pip install numpy scipy pyarrow pytest pip-audit"
+          "programs": [
+            "pip"
+          ],
+          "step": "4"
         },
         {
+          "dir": "",
           "job": "test",
-          "step": "5",
-          "text": "python -m pytest -q tests"
+          "programs": [
+            "python"
+          ],
+          "step": "5"
         },
         {
+          "dir": "",
           "job": "test",
-          "step": "dependency audit (D3)",
-          "text": "pip-audit --strict --desc on 2>&1 | tail -20"
+          "programs": [
+            "1",
+            "pip-audit",
+            "tail"
+          ],
+          "step": "dependency audit (D3)"
         }
       ],
       "elsewhere": [],
       "file": ".github/workflows/ci.yml",
+      "jobs": [
+        {
+          "basis": "declared",
+          "name": "test",
+          "runsOn": [
+            {
+              "labels": [
+                "ubuntu-latest"
+              ],
+              "platform": {
+                "cpu": "x64",
+                "libc": "glibc",
+                "os": "linux"
+              }
+            }
+          ],
+          "setup": [
+            {
+              "ranges": [
+                {
+                  "from": "22",
+                  "range": ">=22.0.0 <23.0.0-0"
+                }
+              ],
+              "step": "1",
+              "uses": "actions/setup-node",
+              "version": "22"
+            },
+            {
+              "ranges": [
+                {
+                  "from": "3.12",
+                  "range": ">=3.12.0 <3.13.0-0"
+                }
+              ],
+              "step": "3",
+              "uses": "actions/setup-python",
+              "version": "3.12"
+            }
+          ]
+        }
+      ],
       "landings": [],
       "mentions": [],
       "name": "ci",
@@ -937,6 +1128,15 @@
         {
           "boundary": "tests",
           "depth": 0,
+          "files": 1
+        },
+        {
+          "boundary": "scripts",
+          "depth": 1,
+          "enters": {
+            "file": "scripts/process_month.py",
+            "from": "tests/test_chain.py"
+          },
           "files": 1
         }
       ],
@@ -962,6 +1162,15 @@
         "releases": false
       },
       "stages": [],
+      "tests": [
+        {
+          "config": "pyproject.toml",
+          "files": 1,
+          "job": "test",
+          "runner": "pytest",
+          "step": "5"
+        }
+      ],
       "triggers": [
         {
           "event": "pull_request",
@@ -998,18 +1207,74 @@
       "checksCount": 0,
       "commands": [
         {
+          "dir": "site",
           "job": "build",
-          "step": "Install site dependencies",
-          "text": "npm ci"
+          "programs": [
+            "npm"
+          ],
+          "step": "Install site dependencies"
         },
         {
+          "dir": "site",
           "job": "build",
-          "step": "Build site",
-          "text": "npm run build"
+          "programs": [
+            "npm"
+          ],
+          "step": "Build site"
         }
       ],
       "elsewhere": [],
       "file": ".github/workflows/pages.yml",
+      "jobs": [
+        {
+          "basis": "declared",
+          "name": "build",
+          "runsOn": [
+            {
+              "labels": [
+                "ubuntu-latest"
+              ],
+              "platform": {
+                "cpu": "x64",
+                "libc": "glibc",
+                "os": "linux"
+              }
+            }
+          ],
+          "setup": [
+            {
+              "ranges": [
+                {
+                  "from": "22",
+                  "range": ">=22.0.0 <23.0.0-0"
+                }
+              ],
+              "step": "1",
+              "uses": "actions/setup-node",
+              "version": "22"
+            }
+          ]
+        },
+        {
+          "basis": "declared",
+          "environment": {
+            "name": "github-pages"
+          },
+          "name": "deploy",
+          "runsOn": [
+            {
+              "labels": [
+                "ubuntu-latest"
+              ],
+              "platform": {
+                "cpu": "x64",
+                "libc": "glibc",
+                "os": "linux"
+              }
+            }
+          ]
+        }
+      ],
       "landings": [],
       "mentions": [],
       "name": "Deploy site to GitHub Pages",
@@ -1023,7 +1288,7 @@
         {
           "boundary": "site",
           "depth": 0,
-          "files": 3
+          "files": 5
         }
       ],
       "readers": [],
@@ -1081,9 +1346,17 @@
       "usesWorkflowToken": false
     }
   ],
-  "edges": [],
+  "edges": [
+    {
+      "from": "tests",
+      "fromTests": true,
+      "kind": "file",
+      "to": "scripts"
+    }
+  ],
+  "engine": "1.24.0",
   "generatedFrom": {
-    "commit": "91dd3567950759f1ee0e05a5971ad2253d66cb5a",
+    "commit": "a04d2b2a12e0d65f987d7f5d6b5d4c6a2db4a6c0",
     "tracked": 142
   },
   "landings": [
@@ -1126,11 +1399,13 @@
       "writers": [
         {
           "by": "scripts/fetch_zenodo_month.py",
-          "confidence": "ast"
+          "confidence": "ast",
+          "untrackedInputs": true
         },
         {
           "by": "scripts/pipeline_month.py",
-          "confidence": "ast"
+          "confidence": "ast",
+          "untrackedInputs": true
         }
       ]
     },
@@ -1152,7 +1427,10 @@
       "writers": [
         {
           "by": "scripts/process_month.py",
-          "confidence": "ast"
+          "confidence": "ast",
+          "unless": [
+            "main"
+          ]
         }
       ]
     },
@@ -1163,7 +1441,8 @@
       "writers": [
         {
           "by": "scripts/pipeline_month.py",
-          "confidence": "ast"
+          "confidence": "ast",
+          "untrackedInputs": true
         }
       ]
     },
@@ -1174,7 +1453,8 @@
       "writers": [
         {
           "by": "scripts/pipeline_month.py",
-          "confidence": "ast"
+          "confidence": "ast",
+          "untrackedInputs": true
         }
       ]
     },
@@ -1185,7 +1465,8 @@
       "writers": [
         {
           "by": "scripts/fetch_zenodo_month.py",
-          "confidence": "ast"
+          "confidence": "ast",
+          "untrackedInputs": true
         }
       ]
     },
@@ -1497,13 +1778,7 @@
       "writers": []
     },
     {
-      "readers": [
-        {
-          "by": "site/src/site-config.ts",
-          "call": "literal",
-          "confidence": "ast"
-        }
-      ],
+      "readers": [],
       "target": "viewer",
       "writers": [
         {
@@ -1559,5 +1834,8 @@
   "submodules": [],
   "symlinks": [],
   "testFiles": 2,
+  "testsNotRun": [
+    "experiments/schumann-sft/test_router.py"
+  ],
   "unassigned": []
 }
