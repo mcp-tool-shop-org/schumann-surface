@@ -1,14 +1,15 @@
 # schumann-surface: how it works
 
-Mapped at 2026-09-25 from commit 91dd356.
+Mapped at 2026-09-30 from commit a04d2b2 by Atlas 1.24.0.
 
 ## What this is
 
-11 parts, mostly Python (15 files), JavaScript (2) and TypeScript (2). Work enters through 2 doors; ci and Deploy site to GitHub Pages each reach 1 part, and ci is followed because a pull request goes through it.
+11 parts, mostly HTML (40 files), Python (15), shell (7), CSS (2), JavaScript (2), TypeScript (2) and Astro (1). Work enters through 2 doors; the busiest is ci, which reaches 2 parts. It deploys a site to GitHub Pages.
 
-## What changed since the last map
+## What changed since 2026-09-25 (91dd356)
 
-This is the first map.
+- tests now imports scripts.
+- 1 file changed content, across 1 part.
 
 ## What comes in
 
@@ -18,6 +19,7 @@ This is the first map.
 ## What happens through ci
 
 1. The workflow runs tests/ in tests.
+2. That reaches scripts (1 file).
 
 ## Who reads the results
 
@@ -29,7 +31,8 @@ ci writes nothing this map can see.
 
 ## What breaks what
 
-- **viewer/** is written by scripts and read by the repository root, scripts and site; a hand edit reaches every reader.
+- **scripts** is imported only from tests, by 1 part (tests), and sits on the path of 1 door.
+- **viewer/** is written by scripts and read by the repository root and scripts; a hand edit reaches every reader.
 
 ## What tends to change together
 
@@ -39,9 +42,11 @@ Window: 180 days; a pair counts from 3 shared commits, since the window holds fe
 
 ## What no test touches
 
-- **scripts** is imported by no test.
+Every code part is imported by at least one test.
 
 experiments/schumann-sft/test_router.py runs in no workflow.
+
+verify.sh runs in no workflow.
 
 ## Written but never read
 
@@ -56,7 +61,7 @@ No two parts export a helper that looks alike.
 
 - **dataset/kb/catalog/** is written by experiments/schumann-sft/finish_and_train.sh.
 - **experiments/schumann-sft/runs/** is written by experiments/schumann-sft/runpod.mjs.
-- **viewer/** is written by scripts/build_viewer.py.
+- **viewer/** is written by scripts/build_viewer.py, except viewer/template.html, which it reads and people write.
 
 ## Hand-authored
 
@@ -64,16 +69,17 @@ People write .claude/, .github/, assets/, docs/, the repository root and site/. 
 
 ## Where to start
 
-ci runs no code this map can follow, so there is no path of files to read in order.
+.github/workflows/ci.yml → scripts/process_month.py
+
+Read those in order to follow one pull request end to end.
 
 ## What this map cannot see
 
-- 1 import could not be resolved: `tests/test_chain.py` imports `process_month`, which is no module on its import path and no declared dependency.
-- 21 reads use paths built at run time and are not named here.
+- 17 reads use paths built at run time and are not named here.
 - 12 writes go to places this repository does not track, so they are not listed as generated.
-- 2 writes and 7 reads go to a path their caller passes, not to this repository.
+- 2 writes and 12 reads go to a path their caller passes, not to this repository.
 - 2 writes and 7 reads go to the home directory (.ssh/), not to this repository.
-- 1 command is built at run time and not followed.
-- Statistics confidence is low: fewer than 30 qualifying commits in the window, and fewer than 20 source files reach 10 revisions.
+- 3 commands are built at run time and not followed.
+- Statistics confidence is low: fewer than 30 qualifying commits in the window, and fewer than 25 source files reach 10 revisions.
 
 Regenerate with `npx --yes @dogfood-lab/atlas map`.
