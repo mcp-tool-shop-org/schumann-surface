@@ -36,7 +36,7 @@
           "path": ".github/workflows/ci.yml"
         },
         {
-          "hash": "fe1db5f18ca42c6e2363f0860db9c117b03a6bff39b375189f7c9d2f1882b4a1",
+          "hash": "a668c160820b7e4c2e41e19b3f710c6ac711536302067665c5252785890c9cda",
           "path": ".github/workflows/pages.yml"
         }
       ],
@@ -1356,7 +1356,7 @@
   ],
   "engine": "1.24.0",
   "generatedFrom": {
-    "commit": "a04d2b2a12e0d65f987d7f5d6b5d4c6a2db4a6c0",
+    "commit": "d7ba8dca6fe566b72113dcd30726c98c8122a16e",
     "tracked": 142
   },
   "landings": [
