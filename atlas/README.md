@@ -1,14 +1,14 @@
 # schumann-surface: how it works
 
-Mapped at 2026-10-01 from commit d7ba8dc by Atlas 1.24.0.
+Mapped at 2026-10-14 from commit 5a7c31b by Atlas 1.24.0.
 
 ## What this is
 
 11 parts, mostly HTML (40 files), Python (15), shell (7), CSS (2), JavaScript (2), TypeScript (2) and Astro (1). Work enters through 2 doors; the busiest is ci, which reaches 2 parts. It deploys a site to GitHub Pages.
 
-## What changed since 2026-09-30 (a04d2b2)
+## What changed since 2026-10-01 (d7ba8dc)
 
-Nothing structural changed since 2026-09-30; 1 file changed content.
+Nothing structural changed since 2026-10-01; 43 files changed content.
 
 ## What comes in
 
