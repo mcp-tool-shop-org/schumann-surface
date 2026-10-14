@@ -32,7 +32,7 @@
       "externals": 0,
       "files": [
         {
-          "hash": "d8629cdc0085f464a8147d35403218183f827ce1d621435cded295ef7b2f14fe",
+          "hash": "8effbc33a832a60458880776636d1b71a5d3fa31b7f9e9d200cdc952c03a7640",
           "path": ".github/workflows/ci.yml"
         },
         {
@@ -519,7 +519,7 @@
           "path": ".gitignore"
         },
         {
-          "hash": "32e194773b928b0343aca7102b91ce2b1921d2d255793c2389041de5b9b8deb2",
+          "hash": "19bd68c72db98e32f64398c2bb7c6067cfda613d3b3d1d3156ef74da8b66d4a1",
           "path": "CHANGELOG.md"
         },
         {
@@ -734,7 +734,7 @@
           "path": "site/astro.config.mjs"
         },
         {
-          "hash": "909ed4c45f18bed65799627e9af9d4b2cbc437e6ce6ee60f4c9f96e3a5d3eb43",
+          "hash": "bd15e57c9afd80af4ea9fdcdfffe4951583c50219e3877d6c634e49700536f2c",
           "path": "site/package-lock.json"
         },
         {
@@ -746,55 +746,55 @@
           "path": "site/public/favicon.svg"
         },
         {
-          "hash": "50c7a13e5013c682625ceaae4f771480e9832b4de0d829e0f09f5a8279aeac0d",
+          "hash": "8c61576266229787933e79e9e667fe8715d3ede03f3e524dbfbdeb80d9cfed25",
           "path": "site/public/viewer/SN_201303.html"
         },
         {
-          "hash": "454c275ce34cd12986c21626591164c53b9ff503eefcb744abd3329c550a9c10",
+          "hash": "585391ecc723719ce3e12039e0fc07095234b298f09b38749727ffb2285d8488",
           "path": "site/public/viewer/SN_201304.html"
         },
         {
-          "hash": "a8b4e220370dbae7d8f0b84ff3096ac99ee15739aba93ccb2137aa94e41993be",
+          "hash": "1c4035766d1fa78d0582abafdcf4fec5374b1435599946ca38d8a762010e0f83",
           "path": "site/public/viewer/SN_201305.html"
         },
         {
-          "hash": "9f0a4badff20bc32799a767a74da5e145e32ad292c46c3c200331fd1b0ea101c",
+          "hash": "4fdf0ce9b6ac52f68cc0253ceb38889fbe019b69772cedc84eefcf91a8254b86",
           "path": "site/public/viewer/SN_201306.html"
         },
         {
-          "hash": "8799217a643286933960006cdbdb91fe0689bbe83c8965dca2a7e7cf0a0c22bb",
+          "hash": "293efee993103472354934cb9e83d5d0dbdd1ed451fa06e49e63aac78d9835ff",
           "path": "site/public/viewer/SN_201307.html"
         },
         {
-          "hash": "253c0d90b0ebecacf1ad66984c5d028fdaed75c835c14f8fef6e04d614205d83",
+          "hash": "962e4adba35c5d2dffed1ca403fcee6e83e96aaac95cb16c0fdbf91834ceb48c",
           "path": "site/public/viewer/SN_201308.html"
         },
         {
-          "hash": "282bf28fd81a40289005a566a51cd1782706e20b8930910b306bf94d46b9081e",
+          "hash": "76c3eef77c5701f855678aa1e9f8920dd49ccd1749f4d954b9d380bc1d475187",
           "path": "site/public/viewer/SN_201309.html"
         },
         {
-          "hash": "05874e6348e250070b1762b49bf808452f16b7299405c1bb1e708abc74f4cdc5",
+          "hash": "8a7c1155366b682046c5969f978bee88cbdd3224ebbe965b2fe802f47cdca361",
           "path": "site/public/viewer/SN_201310.html"
         },
         {
-          "hash": "314cc598b52f3917a43a4cb6f6ee88d963a5b9a992990aab12d33a0c7a6ea006",
+          "hash": "4d494327160232ad8dc3e0e58061ddb85188780890034e0cd5a6847c3cbbea0a",
           "path": "site/public/viewer/SN_201311.html"
         },
         {
-          "hash": "ada6d0095ebb35f0421d4aab03b3f9c6ca6f01419fc8f6682fd6bbf9df2c62a4",
+          "hash": "b5883f7c006235a297ba09f12aa995d9076d524b3ea00918c5e13bc79d75eb6d",
           "path": "site/public/viewer/SN_201312.html"
         },
         {
-          "hash": "71cc08304efac2e8c9d610aadb4a67c37d7708c26f36e8efae55643318ad41d7",
+          "hash": "190e2ae66b2f0342eefea753b2d1ef393a174dbc489605d2abbea106d4b4f2a8",
           "path": "site/public/viewer/SN_201701.html"
         },
         {
-          "hash": "c9197cbc37c1baa356f2074606c8623612f79f3ee7c3f7915b09ae38fd280877",
+          "hash": "465fe6be23a03346791cb829aca446565b5bf4caf1b3e6035abebdcb1a11ef24",
           "path": "site/public/viewer/SN_201702.html"
         },
         {
-          "hash": "05874e6348e250070b1762b49bf808452f16b7299405c1bb1e708abc74f4cdc5",
+          "hash": "8a7c1155366b682046c5969f978bee88cbdd3224ebbe965b2fe802f47cdca361",
           "path": "site/public/viewer/index.html"
         },
         {
@@ -917,111 +917,111 @@
       "externals": 0,
       "files": [
         {
-          "hash": "50c7a13e5013c682625ceaae4f771480e9832b4de0d829e0f09f5a8279aeac0d",
+          "hash": "8c61576266229787933e79e9e667fe8715d3ede03f3e524dbfbdeb80d9cfed25",
           "path": "viewer/SN_201303.html"
         },
         {
-          "hash": "454c275ce34cd12986c21626591164c53b9ff503eefcb744abd3329c550a9c10",
+          "hash": "585391ecc723719ce3e12039e0fc07095234b298f09b38749727ffb2285d8488",
           "path": "viewer/SN_201304.html"
         },
         {
-          "hash": "a8b4e220370dbae7d8f0b84ff3096ac99ee15739aba93ccb2137aa94e41993be",
+          "hash": "1c4035766d1fa78d0582abafdcf4fec5374b1435599946ca38d8a762010e0f83",
           "path": "viewer/SN_201305.html"
         },
         {
-          "hash": "9f0a4badff20bc32799a767a74da5e145e32ad292c46c3c200331fd1b0ea101c",
+          "hash": "4fdf0ce9b6ac52f68cc0253ceb38889fbe019b69772cedc84eefcf91a8254b86",
           "path": "viewer/SN_201306.html"
         },
         {
-          "hash": "8799217a643286933960006cdbdb91fe0689bbe83c8965dca2a7e7cf0a0c22bb",
+          "hash": "293efee993103472354934cb9e83d5d0dbdd1ed451fa06e49e63aac78d9835ff",
           "path": "viewer/SN_201307.html"
         },
         {
-          "hash": "253c0d90b0ebecacf1ad66984c5d028fdaed75c835c14f8fef6e04d614205d83",
+          "hash": "962e4adba35c5d2dffed1ca403fcee6e83e96aaac95cb16c0fdbf91834ceb48c",
           "path": "viewer/SN_201308.html"
         },
         {
-          "hash": "282bf28fd81a40289005a566a51cd1782706e20b8930910b306bf94d46b9081e",
+          "hash": "76c3eef77c5701f855678aa1e9f8920dd49ccd1749f4d954b9d380bc1d475187",
           "path": "viewer/SN_201309.html"
         },
         {
-          "hash": "05874e6348e250070b1762b49bf808452f16b7299405c1bb1e708abc74f4cdc5",
+          "hash": "8a7c1155366b682046c5969f978bee88cbdd3224ebbe965b2fe802f47cdca361",
           "path": "viewer/SN_201310.html"
         },
         {
-          "hash": "314cc598b52f3917a43a4cb6f6ee88d963a5b9a992990aab12d33a0c7a6ea006",
+          "hash": "4d494327160232ad8dc3e0e58061ddb85188780890034e0cd5a6847c3cbbea0a",
           "path": "viewer/SN_201311.html"
         },
         {
-          "hash": "ada6d0095ebb35f0421d4aab03b3f9c6ca6f01419fc8f6682fd6bbf9df2c62a4",
+          "hash": "b5883f7c006235a297ba09f12aa995d9076d524b3ea00918c5e13bc79d75eb6d",
           "path": "viewer/SN_201312.html"
         },
         {
-          "hash": "71cc08304efac2e8c9d610aadb4a67c37d7708c26f36e8efae55643318ad41d7",
+          "hash": "190e2ae66b2f0342eefea753b2d1ef393a174dbc489605d2abbea106d4b4f2a8",
           "path": "viewer/SN_201701.html"
         },
         {
-          "hash": "c9197cbc37c1baa356f2074606c8623612f79f3ee7c3f7915b09ae38fd280877",
+          "hash": "465fe6be23a03346791cb829aca446565b5bf4caf1b3e6035abebdcb1a11ef24",
           "path": "viewer/SN_201702.html"
         },
         {
-          "hash": "8754d226bddef6d87a4e2536e7e7b198ca35b80da335a8f4ba2dda0afdde45e0",
+          "hash": "aa32d3ddffbcace18830204a336ce868bbdb6282e1bccb8e0e82a6c841b596a6",
           "path": "viewer/artifact.html"
         },
         {
-          "hash": "6744caff06dbf48c8efc9d00dc17d995b9e07c533fe0e01e89bc847895df5f81",
+          "hash": "230ca6709730fad6186fd397a896cb9fa1525b461ebb79f6fcd0a80201695662",
           "path": "viewer/artifact_201303.html"
         },
         {
-          "hash": "05e3f3d84d4d3231840b36cc51986a9c08e750a0e01478532bacee944266c04e",
+          "hash": "dded26f4110fc1ae69cc207020a9e5fa9c1de97f2fff3cdcc3496ebd809a2a69",
           "path": "viewer/artifact_201304.html"
         },
         {
-          "hash": "68455c446c45a4ba5c2de9d2211fd07241410f45dea760571734a0ff3daee61d",
+          "hash": "baa0cba787a3220f6267e71dd040558c0cdd35f91ffc3b8cbdd6a4a75018bb85",
           "path": "viewer/artifact_201305.html"
         },
         {
-          "hash": "6e79ba92e74e2ab88f54220b9877d5e33c0e5bb2ec4bb3796adc44f6af7ca3c0",
+          "hash": "90fbe2e0ee922d670a012adaa27feca931d0c7c035381b3f14b5a3a403be2ea7",
           "path": "viewer/artifact_201306.html"
         },
         {
-          "hash": "720aee031775dae0076eb2804fbbef8f7e0fd81dd726ede58860b9abde58f107",
+          "hash": "d4b799d3309d5c7f1ef0b0c3d1aca84b8b6a142df1edd8f3267de60d8b7214e4",
           "path": "viewer/artifact_201307.html"
         },
         {
-          "hash": "bff21f086bf31f33ead242406a760314bec647740398604ad6fd9a3d46765036",
+          "hash": "a07a12acd4f836acab62a8af6342582f0297d8078d329b27d2f0c27c7752ef90",
           "path": "viewer/artifact_201308.html"
         },
         {
-          "hash": "23156eddff290f9c8fb1f820a3ac1ab1128d8d506a39980d6d5bc6e629d2f3b7",
+          "hash": "4d56c3fa89b713006582f4f06c578c88769e835f9754dc7d4ebd9b391522dbd5",
           "path": "viewer/artifact_201309.html"
         },
         {
-          "hash": "6f474bc81e6f66688d9388a2b8ac5cd522bf3d52787e3b02eb87b214a6e01b08",
+          "hash": "ea6f4ab8d3cb2939acf644e499260becf1f3406733bf40067775dd58a9ec32bf",
           "path": "viewer/artifact_201310.html"
         },
         {
-          "hash": "e1e4b78c7b434af591c14b0824b26f414f9e26b72da61b768b0bd26a3545dba4",
+          "hash": "95b97a023cf968de29b3ad98f44da0a8f1bc7e483846080f8c24f9acbf9ce2f3",
           "path": "viewer/artifact_201311.html"
         },
         {
-          "hash": "629594e5a886ec7ce94cb95c1399cc6e17cd1f62240cc5297981f7cfc08dc4be",
+          "hash": "bec884faa2726d6394aa6026f6f7c22c1f1a417ea5b24209757f5d4b7b36b3c8",
           "path": "viewer/artifact_201312.html"
         },
         {
-          "hash": "6fa8899832ccc60d14b43414558e035eaa6a21ca802eb665ea6d0c9d7c4b898f",
+          "hash": "031b3cc66a07222ba475e5c3b1ea95cd1457ce8771f1d7e01a89997bc891f27e",
           "path": "viewer/artifact_201701.html"
         },
         {
-          "hash": "ad96b069a3ae74bcbd37c99740e68f592442f105ce90e8bd5b5e7698769e57d6",
+          "hash": "87ed10ec424903bd959ae548b6f62b26946e9c3656987f6d84bd1c1d1523b442",
           "path": "viewer/artifact_201702.html"
         },
         {
-          "hash": "05874e6348e250070b1762b49bf808452f16b7299405c1bb1e708abc74f4cdc5",
+          "hash": "8a7c1155366b682046c5969f978bee88cbdd3224ebbe965b2fe802f47cdca361",
           "path": "viewer/index.html"
         },
         {
-          "hash": "c400ad117e3ccc0c64141a10c5db92fca26c432e15a1bdab0a427a976e88d2fa",
+          "hash": "d9568df88d9afa013292d8dcde252fd741a27910abdd81f3c26b3f044e9aa7a6",
           "path": "viewer/template.html"
         }
       ],
@@ -1122,7 +1122,9 @@
       "landings": [],
       "mentions": [],
       "name": "ci",
-      "permissions": [],
+      "permissions": [
+        "contents:read"
+      ],
       "pushes": false,
       "reach": [
         {
@@ -1356,7 +1358,7 @@
   ],
   "engine": "1.24.0",
   "generatedFrom": {
-    "commit": "d7ba8dca6fe566b72113dcd30726c98c8122a16e",
+    "commit": "5a7c31b27928bc1a45fbf3970f94b0bea9ac5725",
     "tracked": 142
   },
   "landings": [

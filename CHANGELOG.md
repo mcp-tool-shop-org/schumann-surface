@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 - Cavity mode rests on a station-centred azimuthal atlas; the globe is a toggle.
 
+### Security
+
+- The CI workflow declares `permissions: contents: read` at the top level, so no job gets more than read access unless it sets its own.
+- The three.js script tag in the viewer template and every generated viewer page carries an `integrity` hash and `crossorigin="anonymous"`, so a changed file on the CDN is refused.
+
 ## [1.0.0] - 2026-09-08
 
 ### Added
