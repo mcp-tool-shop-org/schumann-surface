@@ -197,8 +197,8 @@
         "path": ".gitattributes"
       },
       {
-        "commits": 5,
-        "lines": 36,
+        "commits": 6,
+        "lines": 39,
         "path": ".github/workflows/ci.yml"
       },
       {
@@ -212,8 +212,8 @@
         "path": ".gitignore"
       },
       {
-        "commits": 2,
-        "lines": 32,
+        "commits": 3,
+        "lines": 37,
         "path": "CHANGELOG.md"
       },
       {
@@ -247,8 +247,8 @@
         "path": "README.ja.md"
       },
       {
-        "commits": 8,
-        "lines": 181,
+        "commits": 7,
+        "lines": 177,
         "path": "README.md"
       },
       {
@@ -287,8 +287,8 @@
         "path": "assets/logo.svg"
       },
       {
-        "commits": 5,
-        "lines": 157,
+        "commits": 6,
+        "lines": 163,
         "path": "atlas/README.md"
       },
       {
@@ -297,18 +297,18 @@
         "path": "atlas/boundaries.yaml"
       },
       {
-        "commits": 5,
-        "lines": 399,
+        "commits": 6,
+        "lines": 413,
         "path": "atlas/page.json"
       },
       {
-        "commits": 5,
-        "lines": 1110,
+        "commits": 6,
+        "lines": 1144,
         "path": "atlas/statistics.json"
       },
       {
-        "commits": 5,
-        "lines": 2299,
+        "commits": 6,
+        "lines": 2391,
         "path": "atlas/structure.json"
       },
       {
@@ -647,68 +647,68 @@
         "path": "site/public/favicon.svg"
       },
       {
-        "commits": 2,
-        "lines": 807,
+        "commits": 3,
+        "lines": 809,
         "path": "site/public/viewer/SN_201303.html"
       },
       {
-        "commits": 2,
-        "lines": 809,
+        "commits": 3,
+        "lines": 811,
         "path": "site/public/viewer/SN_201304.html"
       },
       {
-        "commits": 2,
-        "lines": 809,
+        "commits": 3,
+        "lines": 811,
         "path": "site/public/viewer/SN_201305.html"
       },
       {
-        "commits": 5,
-        "lines": 921,
+        "commits": 6,
+        "lines": 923,
         "path": "site/public/viewer/SN_201306.html"
       },
       {
-        "commits": 2,
-        "lines": 807,
+        "commits": 3,
+        "lines": 809,
         "path": "site/public/viewer/SN_201307.html"
       },
       {
-        "commits": 2,
-        "lines": 809,
+        "commits": 3,
+        "lines": 811,
         "path": "site/public/viewer/SN_201308.html"
       },
       {
-        "commits": 2,
-        "lines": 809,
+        "commits": 3,
+        "lines": 811,
         "path": "site/public/viewer/SN_201309.html"
       },
       {
-        "commits": 2,
-        "lines": 909,
+        "commits": 3,
+        "lines": 911,
         "path": "site/public/viewer/SN_201310.html"
       },
       {
-        "commits": 2,
-        "lines": 809,
+        "commits": 3,
+        "lines": 811,
         "path": "site/public/viewer/SN_201311.html"
       },
       {
-        "commits": 2,
-        "lines": 809,
+        "commits": 3,
+        "lines": 811,
         "path": "site/public/viewer/SN_201312.html"
       },
       {
-        "commits": 2,
-        "lines": 807,
+        "commits": 3,
+        "lines": 809,
         "path": "site/public/viewer/SN_201701.html"
       },
       {
-        "commits": 2,
-        "lines": 807,
+        "commits": 3,
+        "lines": 809,
         "path": "site/public/viewer/SN_201702.html"
       },
       {
-        "commits": 5,
-        "lines": 921,
+        "commits": 6,
+        "lines": 923,
         "path": "site/public/viewer/index.html"
       },
       {
@@ -787,138 +787,138 @@
         "path": "verify.sh"
       },
       {
-        "commits": 2,
-        "lines": 807,
+        "commits": 3,
+        "lines": 809,
         "path": "viewer/SN_201303.html"
       },
       {
-        "commits": 2,
-        "lines": 809,
+        "commits": 3,
+        "lines": 811,
         "path": "viewer/SN_201304.html"
       },
       {
-        "commits": 2,
-        "lines": 809,
+        "commits": 3,
+        "lines": 811,
         "path": "viewer/SN_201305.html"
       },
       {
-        "commits": 6,
-        "lines": 963,
+        "commits": 7,
+        "lines": 965,
         "path": "viewer/SN_201306.html"
       },
       {
-        "commits": 2,
-        "lines": 807,
+        "commits": 3,
+        "lines": 809,
         "path": "viewer/SN_201307.html"
       },
       {
-        "commits": 2,
-        "lines": 809,
+        "commits": 3,
+        "lines": 811,
         "path": "viewer/SN_201308.html"
       },
       {
-        "commits": 2,
-        "lines": 809,
+        "commits": 3,
+        "lines": 811,
         "path": "viewer/SN_201309.html"
       },
       {
-        "commits": 2,
-        "lines": 909,
+        "commits": 3,
+        "lines": 911,
         "path": "viewer/SN_201310.html"
       },
       {
-        "commits": 2,
-        "lines": 809,
+        "commits": 3,
+        "lines": 811,
         "path": "viewer/SN_201311.html"
       },
       {
-        "commits": 2,
-        "lines": 809,
+        "commits": 3,
+        "lines": 811,
         "path": "viewer/SN_201312.html"
       },
       {
-        "commits": 2,
-        "lines": 807,
+        "commits": 3,
+        "lines": 809,
         "path": "viewer/SN_201701.html"
       },
       {
-        "commits": 2,
-        "lines": 807,
+        "commits": 3,
+        "lines": 809,
         "path": "viewer/SN_201702.html"
       },
       {
-        "commits": 7,
-        "lines": 1069,
+        "commits": 8,
+        "lines": 1071,
         "path": "viewer/artifact.html"
       },
       {
-        "commits": 2,
-        "lines": 805,
+        "commits": 3,
+        "lines": 807,
         "path": "viewer/artifact_201303.html"
       },
       {
-        "commits": 2,
-        "lines": 807,
+        "commits": 3,
+        "lines": 809,
         "path": "viewer/artifact_201304.html"
       },
       {
-        "commits": 2,
-        "lines": 807,
+        "commits": 3,
+        "lines": 809,
         "path": "viewer/artifact_201305.html"
       },
       {
-        "commits": 6,
-        "lines": 961,
+        "commits": 7,
+        "lines": 963,
         "path": "viewer/artifact_201306.html"
       },
       {
-        "commits": 2,
-        "lines": 805,
+        "commits": 3,
+        "lines": 807,
         "path": "viewer/artifact_201307.html"
       },
       {
-        "commits": 2,
-        "lines": 807,
+        "commits": 3,
+        "lines": 809,
         "path": "viewer/artifact_201308.html"
       },
       {
-        "commits": 2,
-        "lines": 807,
+        "commits": 3,
+        "lines": 809,
         "path": "viewer/artifact_201309.html"
       },
       {
-        "commits": 1,
-        "lines": 451,
+        "commits": 2,
+        "lines": 453,
         "path": "viewer/artifact_201310.html"
       },
       {
-        "commits": 2,
-        "lines": 807,
+        "commits": 3,
+        "lines": 809,
         "path": "viewer/artifact_201311.html"
       },
       {
-        "commits": 2,
-        "lines": 807,
+        "commits": 3,
+        "lines": 809,
         "path": "viewer/artifact_201312.html"
       },
       {
-        "commits": 2,
-        "lines": 805,
+        "commits": 3,
+        "lines": 807,
         "path": "viewer/artifact_201701.html"
       },
       {
-        "commits": 2,
-        "lines": 805,
+        "commits": 3,
+        "lines": 807,
         "path": "viewer/artifact_201702.html"
       },
       {
-        "commits": 7,
-        "lines": 1071,
+        "commits": 8,
+        "lines": 1073,
         "path": "viewer/index.html"
       },
       {
-        "commits": 7,
-        "lines": 1063,
+        "commits": 8,
+        "lines": 1065,
         "path": "viewer/template.html"
       }
     ]
@@ -927,9 +927,9 @@
     "level": "low",
     "reason": "fewer than 30 qualifying commits in the window, and fewer than 25 source files reach 10 revisions"
   },
-  "generatedAt": "2026-10-14T23:41:04.136Z",
+  "generatedAt": "2026-10-15T02:52:31.305Z",
   "generatedFrom": {
-    "commit": "5a7c31b27928bc1a45fbf3970f94b0bea9ac5725"
+    "commit": "a0cdb88a457483cc17c279d9a2cedad2ffadd865"
   },
   "pairs": [],
   "parameters": {
@@ -942,16 +942,16 @@
     "floor": "fallen",
     "floorHeld": false,
     "floorTrigger": "both",
-    "headDate": "2026-10-01T13:33:52-07:00",
+    "headDate": "2026-10-14T16:48:25-07:00",
     "inScopeFiles": 147,
     "pinnedStart": null,
     "priorFloor": "fallen",
-    "qualifyingCommits": 27,
+    "qualifyingCommits": 26,
     "qualifyingMinimum": 30,
     "revisions": 5,
     "shared": 10,
     "sharedFloorUsed": 3,
-    "since": "2026-04-04T20:33:52.000Z",
+    "since": "2026-04-17T23:48:25.000Z",
     "sourceExtensions": [
       ".js",
       ".mjs",

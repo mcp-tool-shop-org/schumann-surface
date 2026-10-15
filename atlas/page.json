@@ -33,21 +33,21 @@
   "changes": {
     "fileCounts": {
       "added": 0,
-      "changed": 43,
+      "changed": 1,
       "moved": 0,
-      "parts": 4,
+      "parts": 1,
       "removed": 0
     },
     "items": [
       {
         "kind": "counts",
-        "sentence": "Nothing structural changed since 2026-10-01; 43 files changed content.",
+        "sentence": "Nothing structural changed since 2026-10-14; 1 file changed content.",
         "subjects": []
       }
     ],
     "since": {
-      "commit": "d7ba8dca6fe566b72113dcd30726c98c8122a16e",
-      "generatedAt": "2026-10-01T01:32:00.497Z"
+      "commit": "5a7c31b27928bc1a45fbf3970f94b0bea9ac5725",
+      "generatedAt": "2026-10-14T23:41:04.136Z"
     },
     "unchanged": true
   },
@@ -56,7 +56,7 @@
     "Window: 180 days; a pair counts from 3 shared commits, since the window holds fewer than 30 qualifying commits."
   ],
   "changesTogetherWithTests": 0,
-  "commit": "5a7c31b27928bc1a45fbf3970f94b0bea9ac5725",
+  "commit": "a0cdb88a457483cc17c279d9a2cedad2ffadd865",
   "defaultBranch": "main",
   "derived": "11 parts, mostly HTML (40 files), Python (15), shell (7), CSS (2), JavaScript (2), TypeScript (2) and Astro (1). Work enters through 2 doors; the busiest is ci, which reaches 2 parts. It deploys a site to GitHub Pages.",
   "doors": [
@@ -154,7 +154,7 @@
       ]
     }
   ],
-  "generatedAt": "2026-10-14T23:41:04.136Z",
+  "generatedAt": "2026-10-15T02:52:31.305Z",
   "limits": [
     "17 reads use paths built at run time and are not named here.",
     "12 writes go to places this repository does not track, so they are not listed as generated.",
