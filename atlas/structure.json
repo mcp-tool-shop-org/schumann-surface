@@ -734,7 +734,7 @@
           "path": "site/astro.config.mjs"
         },
         {
-          "hash": "bd15e57c9afd80af4ea9fdcdfffe4951583c50219e3877d6c634e49700536f2c",
+          "hash": "5d9cd61765e32218056a88a768a1f094d735566b5ad895f47a267e9c08db503a",
           "path": "site/package-lock.json"
         },
         {
@@ -1358,7 +1358,7 @@
   ],
   "engine": "1.24.0",
   "generatedFrom": {
-    "commit": "5a7c31b27928bc1a45fbf3970f94b0bea9ac5725",
+    "commit": "a0cdb88a457483cc17c279d9a2cedad2ffadd865",
     "tracked": 142
   },
   "landings": [
