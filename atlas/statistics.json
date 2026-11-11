@@ -247,8 +247,8 @@
         "path": "README.ja.md"
       },
       {
-        "commits": 7,
-        "lines": 177,
+        "commits": 8,
+        "lines": 181,
         "path": "README.md"
       },
       {
@@ -287,8 +287,8 @@
         "path": "assets/logo.svg"
       },
       {
-        "commits": 6,
-        "lines": 163,
+        "commits": 7,
+        "lines": 169,
         "path": "atlas/README.md"
       },
       {
@@ -297,18 +297,18 @@
         "path": "atlas/boundaries.yaml"
       },
       {
-        "commits": 6,
-        "lines": 413,
+        "commits": 7,
+        "lines": 427,
         "path": "atlas/page.json"
       },
       {
-        "commits": 6,
-        "lines": 1144,
+        "commits": 7,
+        "lines": 1342,
         "path": "atlas/statistics.json"
       },
       {
-        "commits": 6,
-        "lines": 2391,
+        "commits": 7,
+        "lines": 2395,
         "path": "atlas/structure.json"
       },
       {
@@ -632,13 +632,13 @@
         "path": "site/astro.config.mjs"
       },
       {
-        "commits": 3,
-        "lines": 6068,
+        "commits": 5,
+        "lines": 6334,
         "path": "site/package-lock.json"
       },
       {
-        "commits": 1,
-        "lines": 18,
+        "commits": 2,
+        "lines": 21,
         "path": "site/package.json"
       },
       {
@@ -927,9 +927,9 @@
     "level": "low",
     "reason": "fewer than 30 qualifying commits in the window, and fewer than 25 source files reach 10 revisions"
   },
-  "generatedAt": "2026-10-15T02:52:31.305Z",
+  "generatedAt": "2026-11-11T22:39:56.484Z",
   "generatedFrom": {
-    "commit": "a0cdb88a457483cc17c279d9a2cedad2ffadd865"
+    "commit": "15ff11aef4c09ed079ea3f8fb6ac13d2e90fe589"
   },
   "pairs": [],
   "parameters": {
@@ -942,16 +942,16 @@
     "floor": "fallen",
     "floorHeld": false,
     "floorTrigger": "both",
-    "headDate": "2026-10-14T16:48:25-07:00",
+    "headDate": "2026-10-15T01:43:44-07:00",
     "inScopeFiles": 147,
     "pinnedStart": null,
     "priorFloor": "fallen",
-    "qualifyingCommits": 26,
+    "qualifyingCommits": 29,
     "qualifyingMinimum": 30,
     "revisions": 5,
     "shared": 10,
     "sharedFloorUsed": 3,
-    "since": "2026-04-17T23:48:25.000Z",
+    "since": "2026-04-18T08:43:44.000Z",
     "sourceExtensions": [
       ".js",
       ".mjs",

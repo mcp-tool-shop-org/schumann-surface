@@ -1,14 +1,17 @@
 # schumann-surface: how it works
 
-Mapped at 2026-10-15 from commit a0cdb88 by Atlas 1.24.0.
+Mapped at 2026-11-11 from commit 15ff11a by Atlas 1.26.0.
 
 ## What this is
 
 11 parts, mostly HTML (40 files), Python (15), shell (7), CSS (2), JavaScript (2), TypeScript (2) and Astro (1). Work enters through 2 doors; the busiest is ci, which reaches 2 parts. It deploys a site to GitHub Pages.
 
-## What changed since 2026-10-14 (5a7c31b)
+## What changed since 2026-10-15 (a0cdb88)
 
-Nothing structural changed since 2026-10-14; 1 file changed content.
+- viewer/SN_20*.html is now written by scripts/build_viewer.py.
+- viewer/artifact_20*.html is now written by scripts/build_viewer.py.
+- viewer was generated and is now mixed.
+- 3 files changed content, across 2 parts.
 
 ## What comes in
 
@@ -31,7 +34,6 @@ ci writes nothing this map can see.
 ## What breaks what
 
 - **scripts** is imported only from tests, by 1 part (tests), and sits on the path of 1 door.
-- **viewer/** is written by scripts and read by the repository root and scripts; a hand edit reaches every reader.
 
 ## What tends to change together
 
@@ -51,6 +53,9 @@ verify.sh runs in no workflow.
 
 - **dataset/kb/catalog/** is written by experiments/schumann-sft/finish_and_train.sh and read by nothing else in this repository.
 - **experiments/schumann-sft/runs/** is written by experiments/schumann-sft/runpod.mjs and read by nothing else in this repository.
+- **viewer/SN_20*.html** is written by scripts/build_viewer.py and read by nothing else in this repository.
+- **viewer/artifact.html** is written by scripts/build_viewer.py and read by nothing else in this repository.
+- **viewer/artifact_20*.html** is written by scripts/build_viewer.py and read by nothing else in this repository.
 
 ## Helpers that look duplicated
 
@@ -59,12 +64,16 @@ No two parts export a helper that looks alike.
 ## Generated, never hand-edited
 
 - **dataset/kb/catalog/** is written by experiments/schumann-sft/finish_and_train.sh.
-- **experiments/schumann-sft/runs/** is written by experiments/schumann-sft/runpod.mjs.
-- **viewer/** is written by scripts/build_viewer.py, except viewer/template.html, which it reads and people write.
+- **viewer/SN_20*.html** is written by scripts/build_viewer.py.
+- **viewer/artifact.html** is written by scripts/build_viewer.py.
+- **viewer/artifact_20*.html** is written by scripts/build_viewer.py.
+- **viewer/index.html** is written by scripts/build_viewer.py.
 
 ## Hand-authored
 
 People write .claude/, .github/, assets/, docs/, the repository root and site/. Nothing in this repository writes to them.
+
+- **experiments/schumann-sft/runs/** is written by experiments/schumann-sft/runpod.mjs from inputs this repository does not keep, and by people.
 
 ## Where to start
 
@@ -74,7 +83,7 @@ Read those in order to follow one pull request end to end.
 
 ## What this map cannot see
 
-- 17 reads use paths built at run time and are not named here.
+- 16 reads use paths built at run time and are not named here.
 - 12 writes go to places this repository does not track, so they are not listed as generated.
 - 2 writes and 12 reads go to a path their caller passes, not to this repository.
 - 2 writes and 7 reads go to the home directory (.ssh/), not to this repository.

@@ -32,7 +32,7 @@
       "externals": 0,
       "files": [
         {
-          "hash": "8effbc33a832a60458880776636d1b71a5d3fa31b7f9e9d200cdc952c03a7640",
+          "hash": "2a078265fc8f05b3399cb12c254024d2cdde37dc7c952ce728947bc252845c28",
           "path": ".github/workflows/ci.yml"
         },
         {
@@ -208,7 +208,7 @@
       "unresolvedSites": 0
     },
     {
-      "dynamicReads": 3,
+      "dynamicReads": 2,
       "dynamicSpawns": 3,
       "dynamicSpawnsInTests": 0,
       "dynamicWrites": 0,
@@ -734,11 +734,11 @@
           "path": "site/astro.config.mjs"
         },
         {
-          "hash": "5d9cd61765e32218056a88a768a1f094d735566b5ad895f47a267e9c08db503a",
+          "hash": "5066bb1689deb99179d1584771c94c3f70343f1bf166b5f6815c19317608c166",
           "path": "site/package-lock.json"
         },
         {
-          "hash": "9c39e620ebae2c5718ecd8c6188bd3451409a614ec8f5308dc15d5fd886e5b91",
+          "hash": "3d6a0ba855f8b5fdd67cf410eca7311b73b2cc857a2758f8899d0b4c8e9528d9",
           "path": "site/package.json"
         },
         {
@@ -1030,7 +1030,7 @@
       ],
       "importConfidence": "full",
       "name": "viewer",
-      "origin": "generated",
+      "origin": "mixed",
       "role": "site",
       "testedBy": 0,
       "unresolvedSites": 0
@@ -1356,9 +1356,9 @@
       "to": "scripts"
     }
   ],
-  "engine": "1.24.0",
+  "engine": "1.26.0",
   "generatedFrom": {
-    "commit": "a0cdb88a457483cc17c279d9a2cedad2ffadd865",
+    "commit": "15ff11aef4c09ed079ea3f8fb6ac13d2e90fe589",
     "tracked": 142
   },
   "landings": [
@@ -1499,6 +1499,11 @@
         {
           "by": "experiments/schumann-sft/build_corpus.py",
           "call": "glob.glob",
+          "confidence": "ast"
+        },
+        {
+          "by": "experiments/schumann-sft/build_corpus.py",
+          "call": "open",
           "confidence": "ast"
         }
       ],
@@ -1643,7 +1648,8 @@
       "writers": [
         {
           "by": "experiments/schumann-sft/runpod.mjs",
-          "confidence": "ast"
+          "confidence": "ast",
+          "untrackedInputs": true
         }
       ]
     },
@@ -1781,7 +1787,7 @@
     },
     {
       "readers": [],
-      "target": "viewer",
+      "target": "viewer/SN_20*.html",
       "writers": [
         {
           "by": "scripts/build_viewer.py",
@@ -1792,6 +1798,16 @@
     {
       "readers": [],
       "target": "viewer/artifact.html",
+      "writers": [
+        {
+          "by": "scripts/build_viewer.py",
+          "confidence": "ast"
+        }
+      ]
+    },
+    {
+      "readers": [],
+      "target": "viewer/artifact_20*.html",
       "writers": [
         {
           "by": "scripts/build_viewer.py",
