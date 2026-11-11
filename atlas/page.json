@@ -7,6 +7,15 @@
     "root",
     "site/"
   ],
+  "authoredWritten": [
+    {
+      "place": "experiments/schumann-sft/runs/",
+      "untrackedInputs": true,
+      "writers": [
+        "experiments/schumann-sft/runpod.mjs"
+      ]
+    }
+  ],
   "breaks": [
     {
       "doors": 1,
@@ -17,46 +26,58 @@
       "kind": "part",
       "name": "scripts",
       "partLabel": "scripts"
-    },
-    {
-      "kind": "place",
-      "readers": [
-        "root",
-        "scripts"
-      ],
-      "target": "viewer/",
-      "writers": [
-        "scripts"
-      ]
     }
   ],
   "changes": {
     "fileCounts": {
       "added": 0,
-      "changed": 1,
+      "changed": 3,
       "moved": 0,
-      "parts": 1,
+      "parts": 2,
       "removed": 0
     },
     "items": [
       {
+        "kind": "landing",
+        "sentence": "viewer/SN_20*.html is now written by scripts/build_viewer.py.",
+        "subjects": [
+          "viewer/SN_20*.html",
+          "scripts/build_viewer.py"
+        ]
+      },
+      {
+        "kind": "landing",
+        "sentence": "viewer/artifact_20*.html is now written by scripts/build_viewer.py.",
+        "subjects": [
+          "viewer/artifact_20*.html",
+          "scripts/build_viewer.py"
+        ]
+      },
+      {
+        "kind": "origin",
+        "sentence": "viewer was generated and is now mixed.",
+        "subjects": [
+          "viewer"
+        ]
+      },
+      {
         "kind": "counts",
-        "sentence": "Nothing structural changed since 2026-10-14; 1 file changed content.",
+        "sentence": "3 files changed content, across 2 parts.",
         "subjects": []
       }
     ],
     "since": {
-      "commit": "5a7c31b27928bc1a45fbf3970f94b0bea9ac5725",
-      "generatedAt": "2026-10-14T23:41:04.136Z"
+      "commit": "a0cdb88a457483cc17c279d9a2cedad2ffadd865",
+      "generatedAt": "2026-10-15T02:52:31.305Z"
     },
-    "unchanged": true
+    "unchanged": false
   },
   "changesTogether": [],
   "changesTogetherNote": [
     "Window: 180 days; a pair counts from 3 shared commits, since the window holds fewer than 30 qualifying commits."
   ],
   "changesTogetherWithTests": 0,
-  "commit": "a0cdb88a457483cc17c279d9a2cedad2ffadd865",
+  "commit": "15ff11aef4c09ed079ea3f8fb6ac13d2e90fe589",
   "defaultBranch": "main",
   "derived": "11 parts, mostly HTML (40 files), Python (15), shell (7), CSS (2), JavaScript (2), TypeScript (2) and Astro (1). Work enters through 2 doors; the busiest is ci, which reaches 2 parts. It deploys a site to GitHub Pages.",
   "doors": [
@@ -130,7 +151,7 @@
   "duplicatesLead": null,
   "duplicatesNote": [],
   "edges": [],
-  "engine": "1.24.0",
+  "engine": "1.26.0",
   "generated": [
     {
       "place": "dataset/kb/catalog/",
@@ -139,24 +160,33 @@
       ]
     },
     {
-      "place": "experiments/schumann-sft/runs/",
+      "place": "viewer/SN_20*.html",
       "writers": [
-        "experiments/schumann-sft/runpod.mjs"
+        "scripts/build_viewer.py"
       ]
     },
     {
-      "place": "viewer/",
-      "sources": [
-        "viewer/template.html"
-      ],
+      "place": "viewer/artifact.html",
+      "writers": [
+        "scripts/build_viewer.py"
+      ]
+    },
+    {
+      "place": "viewer/artifact_20*.html",
+      "writers": [
+        "scripts/build_viewer.py"
+      ]
+    },
+    {
+      "place": "viewer/index.html",
       "writers": [
         "scripts/build_viewer.py"
       ]
     }
   ],
-  "generatedAt": "2026-10-15T02:52:31.305Z",
+  "generatedAt": "2026-11-11T22:39:56.484Z",
   "limits": [
-    "17 reads use paths built at run time and are not named here.",
+    "16 reads use paths built at run time and are not named here.",
     "12 writes go to places this repository does not track, so they are not listed as generated.",
     "2 writes and 12 reads go to a path their caller passes, not to this repository.",
     "2 writes and 7 reads go to the home directory (.ssh/), not to this repository.",
@@ -193,6 +223,7 @@
     "experiments": 1,
     "scripts": 1
   },
+  "testedCodeParts": 2,
   "unnamedWrites": 0,
   "unread": [
     {
@@ -206,6 +237,24 @@
       "writers": [
         "experiments/schumann-sft/runpod.mjs"
       ]
+    },
+    {
+      "place": "viewer/SN_20*.html",
+      "writers": [
+        "scripts/build_viewer.py"
+      ]
+    },
+    {
+      "place": "viewer/artifact.html",
+      "writers": [
+        "scripts/build_viewer.py"
+      ]
+    },
+    {
+      "place": "viewer/artifact_20*.html",
+      "writers": [
+        "scripts/build_viewer.py"
+      ]
     }
   ],
   "unreadFiles": 0,
@@ -215,5 +264,5 @@
     "experiments/schumann-sft/test_router.py runs in no workflow.",
     "verify.sh runs in no workflow."
   ],
-  "written": 3
+  "written": 6
 }
